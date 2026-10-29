@@ -38,7 +38,11 @@ npm run build
 
 ## 배포
 
-GitHub Pages 설정에서 Source를 **GitHub Actions**로 선택합니다. main에 push하면 검증·빌드 후 Pages에 배포됩니다.
+현재 공개 사이트는 검증된 `dist/`를 `gh-pages` 브랜치에서 게시합니다. GitHub Pages 설정은 **Deploy from a branch → gh-pages → /(root)** 입니다. main의 코드 변경만으로는 사이트가 갱신되지 않습니다.
+
+배포 전에는 `npm run build`, `npm test`, `python scripts/check_site.py`를 실행합니다. 검증 후 `dist/`의 파일과 `.nojekyll`을 gh-pages에 반영합니다.
+
+자동배포 템플릿은 `deploy/pages-workflow.yml`에 있습니다. 워크플로 파일 쓰기 권한을 가진 계정으로 이를 `.github/workflows/pages.yml`에 등록하고 Pages Source를 **GitHub Actions**로 변경하면 main의 변경이 검증·빌드를 거쳐 자동 게시됩니다. 현재 연결 앱의 워크플로 쓰기 권한 제한 때문에 자동배포는 활성화하지 않았습니다.
 
 ## 라이선스
 
