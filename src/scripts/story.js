@@ -1,33 +1,62 @@
+import {sceneOrder} from './story-model.js';
 const base=import.meta.env.BASE_URL;
-const fmt=(v,d=0)=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});
 const $=s=>document.querySelector(s);
-const escape=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function init(){
+const fmt=(v,d=0)=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});
+async function init({mapLoader=()=>import('./maps.js')}={}){
  const [o,rows]=await Promise.all(['overview.json','districts.json'].map(f=>fetch(`${base}data/${f}`).then(r=>{if(!r.ok)throw Error(r.status);return r.json()})));
- const regions=['진전면','북면'].map(a=>rows.find(r=>r.area.split(' ').at(-1)===a&&r.service==='code24'&&r.minutes===30));
- let following=true;
- function chart(mode){let max,title,values,suffix;if(mode==='rate'){max=100;title='30분 초과지역 거주비율 · 전체 주민 대비 (%)';values=regions.map(r=>100*r.over_population/r.target_population);suffix='%'}else if(mode==='population'){max=50000;title='두 지역의 전체 주민 (명) · 분모 비교';values=regions.map(r=>r.target_population);suffix='명'}else{max=3000;title='30분 초과지역 거주인구 (명)';values=regions.map(r=>r.over_population);suffix='명'}
- $('#population-chart').innerHTML=`<div class="chart-title">${title}</div>`+regions.map((r,i)=>`<div class="bar-row"><span>${escape(r.area.split(' ')[1])}</span><div class="bar-track"><div class="bar-fill" style="width:${100*values[i]/max}%"></div></div><span class="bar-value">${fmt(values[i],mode==='rate'?1:0)}${suffix}</span></div>`).join('')+`<div class="chart-axis">공통 축: 0–${fmt(max)}${suffix}</div>`;
- document.querySelectorAll('[data-compare]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.compare===mode)));
+ const run=$('.story-run'),scenes=[...document.querySelectorAll('.scene')];
+ const regions=['마산합포구 진전면','의창구 북면'].map(area=>rows.find(r=>r.area===area&&r.service==='code24'&&r.minutes===30));
+ const jd=rows.find(r=>r.area==='마산합포구 진동면'&&r.service==='delivery'&&r.minutes===30);
+ const sim=o.scenario.find(r=>r['진료과']==='응급의학과'&&r['지역']==='진전면');
+ const eld=o.elderly.find(r=>r.service==='code24');
+ let active='',mapController=null;
+ const comparisonNames=new Set(['rate','population','count','question']);
+ function comparison(mode){
+  const ratio=mode==='rate',population=mode==='population',max=ratio?100:population?50000:3000;
+  $('#comparison-kicker').textContent=population?'전체 주민 · 분모 비교':'응급의학과 전문의 보유기관 · 30분';
+  $('#comparison-title').textContent=ratio?'30분 초과지역 거주비율 (%)':population?'두 지역의 전체 인구 (명)':'30분 초과지역 거주인구 (명)';
+  regions.forEach((r,i)=>{const value=ratio?100*r.over_population/r.target_population:population?r.target_population:r.over_population;$('#compare-value-'+i).textContent=fmt(value,ratio?1:0)+(ratio?'%':'명');$('#compare-bar-'+i).style.width=`${100*value/max}%`});
+  $('#comparison-axis').textContent=`같은 축 · 0–${fmt(max)}${ratio?'%':'명'}`;
+  $('#comparison-foot').textContent=ratio?'분모: 각 지역의 전체 주민':population?'창원 주민등록 인구 · 2026.09':'격자별 공간배분 인구 합계 · 전체 주민 기준';
  }
- document.querySelectorAll('[data-compare]').forEach(b=>b.addEventListener('click',()=>{following=false;$('#follow-story').setAttribute('aria-pressed','false');$('#follow-story').textContent='설명으로 돌아가기';chart(b.dataset.compare)}));
- $('#follow-story').addEventListener('click',()=>{following=true;$('#follow-story').setAttribute('aria-pressed','true');$('#follow-story').textContent='설명 따라가기';chart(document.querySelector('[data-step].active')?.dataset.step||'rate')});
- if('IntersectionObserver'in window){const io=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){document.querySelectorAll('[data-step]').forEach(x=>x.classList.remove('active'));e.target.classList.add('active');if(following)chart(e.target.dataset.step)}},{rootMargin:'-20% 0px -35% 0px',threshold:0});document.querySelectorAll('[data-step]').forEach(e=>io.observe(e))}
- function workforce(s){const group=['창원','전국','의대 보유 비수도권 17개 도시','특례시 4곳(수원·고양·용인·화성)'];const rs=group.map(g=>o.workforce.find(r=>r['구분']===g));const max=Math.ceil(Math.max(...rs.map(r=>Number(r[s])))/5)*5;
- const width=600,left=175,right=70,plot=width-left-right;const labels=['창원','전국','의대 보유 17도시','타 특례시 4곳'];
- $('#workforce-chart').innerHTML=`<div class="chart-title">${escape(s)} · 전체 인구 10만 명당 (2026년 9월)</div><svg class="dot-chart" viewBox="0 0 600 250" role="img" aria-label="${escape(s)} 공급률 비교"><line x1="${left}" y1="210" x2="${left+plot}" y2="210" stroke="#b6c0b4"/>${rs.map((r,i)=>{const y=35+i*48,x=left+Number(r[s])/max*plot;return `<text class="label" x="0" y="${y+5}">${labels[i]}</text><line x1="${left}" y1="${y}" x2="${left+plot}" y2="${y}" stroke="#dce2d7"/><circle cx="${x}" cy="${y}" r="${i===0?8:5}" fill="${i===0?'#b14f34':'#2d6b59'}"/><text x="${width-45}" y="${y+5}" text-anchor="middle">${fmt(r[s],1)}</text>`}).join('')}<text x="${left}" y="235" class="label">0</text><text x="${left+plot}" y="235" class="label" text-anchor="end">${max}명</text></svg>`;
- document.querySelectorAll('[data-specialty]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.specialty===s)));$('#workforce-select').value=s;
+ function supply(scene){
+  const specialty=scene==='supply-ob'?'산부인과':scene==='supply-peds'?'소아청소년과':'전체 의사';
+  const names=['창원','전국','의대 보유 비수도권 17개 도시','특례시 4곳(수원·고양·용인·화성)'];
+  const values=names.map(name=>Number(o.workforce.find(r=>r['구분']===name)[specialty]));
+  const max=Math.ceil(Math.max(...values)/5)*5;
+  $('#supply-title').textContent=specialty;$('#supply-max').textContent=max+'명';
+  values.forEach((v,i)=>{$('#supply-dot-'+i).setAttribute('cx',String(180+330*v/max));$('#supply-value-'+i).textContent=fmt(v,1)});
  }
- document.querySelectorAll('[data-specialty]').forEach(b=>b.addEventListener('click',()=>workforce(b.dataset.specialty)));$('#workforce-select').addEventListener('change',e=>workforce(e.target.value));workforce('전체 의사');
- let scenarioMap,scenarioGeometry,scenarioBefore,scenarioAfter,scenarioRender;let scenarioAfterSelected=false;
- document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{scenarioAfterSelected=b.dataset.scenario==='after';if(scenarioRender)scenarioRender()}));
- const sc=o.scenario.find(r=>r['진료과']==='응급의학과'&&r['지역']==='진전면');
- document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{const after=b.dataset.scenario==='after',v=Number(sc[after?'30분초과_후':'30분초과_전']);$('#scenario-chart').innerHTML=`<div class="bar-row"><span>${after?'공급점 추가':'기준모형'}</span><div class="bar-track"><div class="bar-fill" style="width:${100*v/3524}%;background:${after?'#765a97':'#2d6b59'}"></div></div><span class="bar-value">${fmt(v)}명</span></div><div class="chart-axis">공통 축: 0–3,524명</div>`;document.querySelectorAll('[data-scenario]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
- let initialized=false;async function deliveryMap(){if(initialized)return;initialized=true;try{const m=await import('./maps.js');const [g,fac]=await Promise.all([m.data('geometry.json'),m.data('facilities.json')]);const map=m.createMap('delivery-map',{center:[128.49,35.11],zoom:11.5,onError:()=>{}});await m.ready(map);await m.boundaries(map);m.addFacilities(map,m.facilitiesGeo(fac,'code10'));m.moveTo(map,m.boundsFor(g,'마산합포구 진동면'));document.querySelectorAll('[data-delivery]').forEach(b=>b.addEventListener('click',()=>{map.getSource('facilities').setData(m.facilitiesGeo(fac,b.dataset.delivery));document.querySelectorAll('[data-delivery]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));$('#delivery-reset').addEventListener('click',()=>m.moveTo(map,m.boundsFor(g,'마산합포구 진동면')))}catch(e){$('#delivery-map').textContent='인터랙티브 지도를 불러오지 못했습니다. 아래 수치와 우리 동네 결과표를 이용해 주세요.'}}
- if('IntersectionObserver'in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){deliveryMap();io.disconnect()}},{rootMargin:'400px'});io.observe($('#delivery-map'))}else deliveryMap();
- let scenarioInitialized=false;async function initScenario(){if(scenarioInitialized)return;scenarioInitialized=true;try{const m=await import('./maps.js');const [g,b,a,fac]=await Promise.all([m.data('geometry.json'),m.data('code24-30.json'),m.data('scenario-map.json'),m.data('facilities.json')]);scenarioGeometry=g;scenarioBefore=b;scenarioAfter=a;scenarioMap=m.createMap('scenario-map',{center:[128.4,35.11],zoom:11});await m.ready(scenarioMap);scenarioMap.addSource('scenario-grids',{type:'geojson',data:{type:'FeatureCollection',features:[]}});scenarioMap.addLayer({id:'scenario-grid',type:'fill',source:'scenario-grids',paint:{'fill-color':['get','color'],'fill-opacity':.7}});await m.boundaries(scenarioMap);m.addFacilities(scenarioMap,m.facilitiesGeo(fac,'code24'));
- const marker=document.createElement('div');marker.textContent='◇';marker.style.cssText='color:#765a97;background:white;border:2px solid #765a97;font-size:27px;line-height:30px;width:32px;text-align:center;font-weight:bold';marker.setAttribute('aria-label','가상입지 기준격자');const pin=new m.maplibregl.Marker({element:marker}).setLngLat(a.reference_center).setPopup(new m.maplibregl.Popup().setText(`가상입지 기준격자 ${a.site_grid}. ${a.site_note}`));
- const sea=new Set(g.sea);scenarioRender=()=>{const features=g.rings.map((ring,i)=>{const t=scenarioAfterSelected?a.after_minutes[i]:b.minutes[i],color=sea.has(i)?'#806a9b':t==null?'#8d9791':t>30?'#b14f34':'#91b4a2';const coords=ring.map(p=>[p[1],p[0]]);if(JSON.stringify(coords[0])!==JSON.stringify(coords.at(-1)))coords.push(coords[0]);return {type:'Feature',geometry:{type:'Polygon',coordinates:[coords]},properties:{color}}});scenarioMap.getSource('scenario-grids').setData({type:'FeatureCollection',features});if(scenarioAfterSelected)pin.addTo(scenarioMap);else pin.remove()};scenarioRender();m.moveTo(scenarioMap,m.boundsFor(g,'마산합포구 진전면'));}catch(e){$('#scenario-map').textContent='비교지도를 불러오지 못했습니다. 아래 검증된 전후 수치와 자료 페이지의 결과표를 확인해 주세요.'}}
- if('IntersectionObserver'in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){initScenario();io.disconnect()}},{rootMargin:'400px'});io.observe($('#scenario-map'))}else initScenario();
+ function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=unit}
+ function setScene(scene){
+  if(scene===active)return;active=scene;run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
+  $('#story-progress-fill').style.width=`${100*(sceneOrder.indexOf(scene)+1)/sceneOrder.length}%`;
+  $('#discovery-chart').hidden=!comparisonNames.has(scene);$('#supply-chart').hidden=!scene.startsWith('supply-');$('#scene-counter').hidden=true;
+  $('#map-place').textContent='창원시';$('#stage-label').textContent='차량시간 추정 · 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';
+  if(comparisonNames.has(scene)){comparison(scene==='question'?'count':scene);$('#map-place').textContent='진전면 / 북면'}
+  if(scene.startsWith('supply-')){supply(scene);$('#stage-label').textContent='공급률 비교 · 2026.09';$('#map-place').textContent='도시 전체의 공급'}
+  if(scene==='cover')$('#stage-label').textContent='창원시 · 55개 읍·면·동';
+  if(scene==='jinjeon'||scene==='bukmyeon'){
+   const i=scene==='jinjeon'?0:1;$('#map-place').textContent=regions[i].area;$('#stage-legend').textContent='■ 주황: 30분 초과 · 녹색: 30분 이내 · 회색: 미산출 · 보라: 배편';
+  }
+  if(scene==='elderly'){$('#stage-label').textContent='응급의학과 · 30분 접근성 하위20% 경계 이하 (동점 포함)';$('#stage-legend').textContent='■ 공간배분 추정인구 · 65세 이상';counter('접근성 하위지역의 고령 주민',fmt(eld.elderly),'명')}
+  if(scene==='ob-facilities'||scene.startsWith('delivery-')){
+   $('#map-place').textContent='마산합포구 진동면';$('#stage-label').textContent='기관별 지도 · 2026.10 수집';
+   $('#stage-legend').textContent=scene==='ob-facilities'?'● 산부인과 전문의 보유기관':scene==='delivery-facilities'?'● 분만 분석 대상기관':'거주격자: 주황 0곳 · 황금 1곳 · 녹색 2곳 이상 · 회색 미산출 · 보라 배편';
+   if(scene==='delivery-one'){counter('30분 내 분만기관 1곳 지역 거주',fmt(100*jd.women_one/jd.women_population,1)+'%','진동면 여성 15~49세 중');$('#stage-legend').textContent='■ 황금색: 1곳인 거주격자 강조 · ● 분만 분석 대상기관'}
+  }
+  if(scene.startsWith('scenario-')){const after=scene==='scenario-after';$('#map-place').textContent='마산합포구 진전면';$('#stage-label').textContent='입지 시뮬레이션 · 응급의학과 전문의 2명';$('#stage-legend').textContent=after?'주황: 30분 초과 · 녹색: 이내 · ◇ 가상입지 기준격자':'주황: 30분 초과 · 녹색: 이내 · ● 기존 기관';counter(after?'가상 거점 추가 후':'기존 기관 배치',fmt(sim[after?'30분초과_후':'30분초과_전']),'명 · 30분 초과지역 거주인구')}
+  mapController?.setScene(scene);
+ }
+ function sync(){
+  const mobile=window.matchMedia('(max-width:850px)').matches,anchor=window.innerHeight*(mobile?.65:.45);
+  let next=scenes[0].dataset.scene;for(const scene of scenes){if(scene.querySelector('.scene-copy').getBoundingClientRect().top<=anchor)next=scene.dataset.scene;else break}setScene(next);
+ }
+ let scheduled=false;
+ function requestSync(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;sync()})}
+ run.classList.add('story-ready');setScene('cover');sync();
+ window.addEventListener('scroll',requestSync,{passive:true});window.addEventListener('resize',requestSync,{passive:true});window.addEventListener('pageshow',requestSync);window.addEventListener('hashchange',requestSync);
+ // Data and narration are usable before WebGL initializes, including deep-linked scenes.
+ mapLoader().then(m=>m.createStoryMap('narrative-map')).then(controller=>{mapController=controller;$('#story-fallback').hidden=true;mapController.setScene(active);window.addEventListener('pagehide',e=>{if(!e.persisted)controller.destroy()})}).catch(()=>{run.classList.add('map-unavailable');$('#story-fallback').hidden=false});
 }
-init().catch(()=>{document.querySelectorAll('button').forEach(b=>b.disabled=true)});
+init().catch(()=>document.querySelector('.story-run')?.classList.add('story-load-error'));

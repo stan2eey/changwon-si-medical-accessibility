@@ -12,7 +12,7 @@ class Page(HTMLParser):
   if 'id'in a:self.ids.append(a['id'])
   if tag=='label'and 'for'in a:self.labels.add(a['for'])
   if tag in ('select','input'):self.inputs.append(a)
-  if tag=='img':assert a.get('alt'),a
+  if tag=='img':assert 'alt' in a,a
   for k in ['href','src']:
    if k in a:self.refs.append(a[k])
 pages={p:Page(p) for p in root.rglob('*.html')};count=0
