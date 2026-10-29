@@ -1,0 +1,19 @@
+{
+  "name": "changwon-medical-atlas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "node scripts/validate.mjs && astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "test": "node scripts/check_interactions.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.4.4",
+    "katex": "^0.19.1",
+    "maplibre-gl": "^6.16.0"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}
