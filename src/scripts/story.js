@@ -29,7 +29,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  }
  function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=unit}
  function setScene(scene){
-  if(scene===active)return;active=scene;run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
+  if(scene===active)return;active=scene;const fallbackScene=['cover','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one','scenario-before','scenario-after'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':scene.startsWith('scenario-')?'입지 시뮬레이션 도달격자':'응급의학과 도달격자')+' · 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
   $('#story-progress-fill').style.width=`${100*(sceneOrder.indexOf(scene)+1)/sceneOrder.length}%`;
   $('#discovery-chart').hidden=!comparisonNames.has(scene);$('#supply-chart').hidden=!scene.startsWith('supply-');$('#scene-counter').hidden=true;
   $('#map-place').textContent='창원시';$('#stage-label').textContent='차량시간 추정 · 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';

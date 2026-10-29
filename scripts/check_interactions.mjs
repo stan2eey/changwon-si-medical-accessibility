@@ -2,6 +2,7 @@
 import {JSDOM} from 'jsdom';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {renderGridSVG} from '../src/scripts/grid-svg.js';
 import {sceneOrder,storyFeatures} from '../src/scripts/story-model.js';
 const base='/changwon-si-medical-accessibility/';
 const load=f=>JSON.parse(fs.readFileSync(`public/data/${f}`,'utf8'));
@@ -25,9 +26,9 @@ const $=s=>document.querySelector(s);
 const bar=$('#compare-bar-0'),dot=$('#supply-dot-0');
 const go=s=>{scrollPosition=sceneOrder.indexOf(s)*1000;window.dispatchEvent(new dom.window.Event('scroll'));assert.equal($('.story-run').dataset.scene,s);assert.equal(mapScenes.at(-1),s)};
 assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart').hidden);assert.equal($('#compare-value-1').textContent,'—');assert(!document.querySelector('#follow-story'));
-go('bukmyeon');assert($('#discovery-chart').hidden);assert(!$('.scene[data-scene="bukmyeon"]').textContent.includes('2,730'));
+go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
-go('population');assert.equal($('#compare-value-1').textContent,'44,304명');assert.match($('#comparison-title').textContent,/전체 인구/);
+
 go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/3,000명/);
 go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'9.5');assert.strictEqual($('#supply-dot-0'),dot);
 go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7%');
@@ -38,11 +39,34 @@ assert.equal(features.length,10099);const one=features.filter(f=>f.properties.ar
 dom.window.close();
 dom=mount('dist/explore/index.html',`https://example.test${base}explore/?service=code24&cut=30&district=${encodeURIComponent('의창구 북면')}&compare=${encodeURIComponent('마산합포구 진전면')}`);
 const mocks={data:async f=>load(f),createMap:()=>{throw Error('WebGL unavailable')},ready(){},boundaries(){},setBase(){},boundsFor(){},moveTo(){},facilitiesGeo(){},addFacilities(){},fmt:(v,d=1)=>v==null?'미산출':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d}),esc:v=>String(v??'').replaceAll('<','&lt;'),maplibregl:{}};
-const source=fs.readFileSync('src/scripts/explore.js','utf8').replace(/^import .*?;\r?\n/,'const {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl}=mocks;\n').replace('init().catch(', 'return init().catch(');
-await new Function('mocks',source)(mocks);
-assert.match($('#region-card').textContent,/의창구 북면/);assert.match($('#region-card').textContent,/6.2%/);assert.equal($('#comparison-rows').children.length,2);assert.match($('#map').textContent,/사용할 수 없습니다/);
+const source=fs.readFileSync('src/scripts/explore.js','utf8').replace(/^import .*?;\r?\n/gm,'').replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init().catch(');
+const runExplore=new Function('mocks','renderGridSVG','const {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl}=mocks;'+source);
+await runExplore(mocks,renderGridSVG);
+assert.match($('#region-card').textContent,/의창구 북면/);assert.match($('#region-card').textContent,/6.2%/);assert.equal($('#comparison-rows').children.length,2);assert($('#map svg polygon'));assert.match($('#status').textContent,/격자 벡터지도/);
 $('#service').value='delivery';$('#district').value='마산합포구 진동면';$('#service').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#definition').textContent,/기대출생아/);assert.match($('#region-card').textContent,/명\/년/);
 $('#gu').value='진해구';$('#gu').dispatchEvent(new dom.window.Event('change'));assert($('#district').value.startsWith('진해구 '));assert.match($('#region-card').textContent,/진해구/);
 $('#cut').value='60';$('#cut').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#definition').textContent,/60분/);assert.equal(new URL(location.href).searchParams.get('service'),'delivery');assert.equal(new URL(location.href).searchParams.get('cut'),'60');
+
+$('#metric').value='count';$('#metric').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#region-card').textContent,/0곳인 지역/);assert.match($('#region-card').textContent,/2곳 이상/);
+$('#metric').value='score';$('#metric').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#region-card').textContent,/가중 평균 점수/);assert(!$('#region-card').textContent.includes('초과지역'));
+$('#metric').value='time';$('#metric').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#region-card').textContent,/격자별 중앙값/);
+const poly=$('#map polygon');const selectedIndex=Number(poly.dataset.index);poly.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));const gridID=load('geometry.json').ids[selectedIndex];assert.equal(new URL(location.href).searchParams.get('grid_id'),gridID);assert.match($('#grid-detail').textContent,/선택한 100m 격자/);assert($('#map polygon.selected'));assert.equal($('#district').value,load('geometry.json').names[selectedIndex]);
+const beforeView=$('#map svg').getAttribute('viewBox');$('#zoom-in').click();assert.notEqual($('#map svg').getAttribute('viewBox'),beforeView);$('#map polygon.selected').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert.notEqual($('#map svg').getAttribute('viewBox'),beforeView,'selection must retain SVG zoom');
+const restoreURL=location.href;dom.window.close();dom=mount('dist/explore/index.html',restoreURL);await runExplore(mocks,renderGridSVG);assert.equal(new URL(location.href).searchParams.get('grid_id'),gridID);assert($('#grid-detail').textContent.includes(gridID));assert($('#map polygon.selected'));
+$('#district').value='마산합포구 진전면';$('#district').dispatchEvent(new dom.window.Event('change'));assert(!new URL(location.href).searchParams.has('grid_id'));assert(!$('#map polygon.selected'));
 dom.window.close();
-console.log('PASS: scroll scenes forward/back, staged number disclosure, persistent chart nodes, mobile scene trigger, delivery one-provider grids, scenario affected grids, existing explorer and no-WebGL fallback.');
+// Exercise the map-success path and its click callback without claiming WebGL rendering.
+dom=mount('dist/explore/index.html',`https://example.test${base}explore/`);
+const events={},filters={},sources={};let camera={lat:35.2,lng:128.5};
+const liveMap={addSource:(id,v)=>sources[id]=v,addLayer(){},getSource:id=>({setData:v=>sources[id].data=v}),setFilter:(id,f)=>filters[id]=f,setPaintProperty(){},setLayoutProperty(){},on:(name,...args)=>events[name+(typeof args[0]==='string'?':'+args[0]:'')]=args.at(-1),getCanvas:()=>({style:{},addEventListener(){}}),getCenter:()=>camera,getZoom:()=>15,resize(){},queryRenderedFeatures:()=>[],jumpTo:({center})=>camera={lng:center[0],lat:center[1]},remove(){}};
+await runExplore({...mocks,createMap:()=>liveMap,addFacilities:()=>sources.facilities={data:null}},renderGridSVG);assert($('#map').hidden);assert(!$('#webgl-map').hidden);assert.equal(sources.grids.data.features.length,10099);
+const bukIndex=load('geometry.json').names.indexOf('의창구 북면');events['click:grid-fill']({point:{},features:[{properties:{index:bukIndex}}]});assert.equal($('#district').value,'의창구 북면');assert.equal($('#gu').value,'의창구');assert.equal(filters['grid-selected'][2],bukIndex);assert($('#comparison-rows').textContent.includes('의창구 북면'));assert.equal(new URL(location.href).searchParams.get('grid_id'),load('geometry.json').ids[bukIndex]);
+dom.window.close();dom=mount('dist/cities/index.html',`https://example.test${base}cities/`);globalThis.matchMedia=()=>({matches:true});
+const citySource=fs.readFileSync('src/scripts/cities.js','utf8').replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init().catch(');await new Function(citySource)();assert.equal(document.querySelectorAll('.city-row').length,4);
+document.querySelector('[data-open="medical"]').click();assert.equal(document.querySelectorAll('.city-row').length,18);assert.equal($('#city-group').value,'medical');
+$('#city-group').value='special';$('#city-group').dispatchEvent(new dom.window.Event('change'));assert.equal(document.querySelectorAll('.city-row').length,5);assert($('#city-chart').textContent.includes('화성'));
+$('#city-subject').value='산부인과';$('#city-subject').dispatchEvent(new dom.window.Event('change'));const high=Number(document.querySelector('.city-row strong').textContent);$('#city-sort').value='asc';$('#city-sort').dispatchEvent(new dom.window.Event('change'));assert(Number(document.querySelector('.city-row strong').textContent)<=high);
+document.querySelector('[data-name="수원"]').click();assert.equal($('#city-b').value,'수원');assert($('#city-cards').textContent.includes('수원'));assert.equal($('#city-detail-rows').children.length,9);assert.equal(new URL(location.href).searchParams.get('b'),'수원');
+const cityData=load('workforce-cities.json');assert.equal(cityData.cities.length,22);for(const c of cityData.cities){for(const s of cityData.subjects){assert.equal(c.counts[s],c.members.reduce((v,m)=>v+m.counts[s],0));assert.equal(c.rates[s],c.counts[s]/c.population*100000)}}
+dom.window.close();
+console.log('PASS: scroll scenes; SVG results under WebGL failure; grid selection, district linkage, zoom retention and shared grid restore; metric-specific summaries; 22-city counts, sorting, drilldown and comparisons.');

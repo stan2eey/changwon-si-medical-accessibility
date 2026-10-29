@@ -10,13 +10,13 @@ export function createMap(container,{center=[128.56,35.18],zoom=10,interactive=t
  map.on('error',e=>onError(e.error?.message||'지도 자료 로딩 오류'));
  return map;
 }
-export const ready=map=>new Promise(resolve=>map.loaded()?resolve():map.once('load',resolve));
+export const ready=map=>new Promise((resolve,reject)=>{if(map.isStyleLoaded())return resolve();const timer=setTimeout(()=>reject(Error('Map style timeout')),10000);map.once('style.load',()=>{clearTimeout(timer);resolve()})});
 export function setBase(map,type){for(const k of ['street','satellite'])map.setLayoutProperty(k,'visibility',k===type?'visible':'none')}
 export async function boundaries(map){const b=await data('boundaries.json');map.addSource('boundaries',{type:'geojson',data:b.boundaries});map.addLayer({id:'boundary',type:'line',source:'boundaries',paint:{'line-color':'#68776d','line-width':.6,'line-opacity':.7}});map.addSource('gu',{type:'geojson',data:b.gu});map.addLayer({id:'gu',type:'line',source:'gu',paint:{'line-color':'#263e34','line-width':1.6}})}
 export function boundsFor(g,name){const points=g.rings.filter((r,i)=>!name||g.names[i]===name).flat();if(!points.length)return null;return [[Math.min(...points.map(p=>p[1])),Math.min(...points.map(p=>p[0]))],[Math.max(...points.map(p=>p[1])),Math.max(...points.map(p=>p[0]))]]}
 export function moveTo(map,bounds){if(bounds)map.fitBounds(bounds,{padding:35,maxZoom:15,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:650})}
 export function facilitiesGeo(all,service){return {type:'FeatureCollection',features:all.filter(f=>Number(f.supply[service])>0).map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name,area:f.area,kind:f.kind,supply:f.supply[service],address:f.address}}))}}
-export function addFacilities(map,geo){map.addSource('facilities',{type:'geojson',data:geo});map.addLayer({id:'facilities',type:'circle',source:'facilities',paint:{'circle-radius':['interpolate',['linear'],['zoom'],8,2.5,14,6],'circle-color':'#173b38','circle-stroke-color':'#fff','circle-stroke-width':1.3}});map.on('mouseenter','facilities',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','facilities',()=>map.getCanvas().style.cursor='');map.on('click','facilities',e=>{const p=e.features[0].properties;new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<h3>${esc(p.name)}</h3>${esc(p.area)} · ${esc(p.kind)}<br>${esc(p.address)}<p>선택 서비스 등록 공급 ${fmt(p.supply,0)}<br><small>전문의: 명 / 분만: 분만실 병상 수<br>실제 운영·진료 가능 여부와 다릅니다.</small></p>`).addTo(map)})}
+export function addFacilities(map,geo,currentService=()=>'code24'){map.addSource('facilities',{type:'geojson',data:geo});map.addLayer({id:'facilities',type:'circle',source:'facilities',paint:{'circle-radius':['interpolate',['linear'],['zoom'],8,2.5,14,6],'circle-color':'#173b38','circle-stroke-color':'#fff','circle-stroke-width':1.3}});map.on('mouseenter','facilities',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','facilities',()=>map.getCanvas().style.cursor='');map.on('click','facilities',e=>{const p=e.features[0].properties;const s=currentService(),names={code01:'내과',code04:'외과',code10:'산부인과',code11:'소아청소년과',code24:'응급의학과',code07:'심장혈관흉부외과',code02:'신경과',code06:'신경외과'};new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<h3>${esc(p.name)}</h3>${esc(p.area)} · ${esc(p.kind)}<br>${esc(p.address)}<p>선택 서비스 등록 공급 ${fmt(p.supply,0)}<br><small>전문의: 명 / 분만: 분만실 병상 수<br>실제 운영·진료 가능 여부와 다릅니다.</small></p>`).addTo(map)})}
 export {maplibregl};
 
 // The article owns a single, non-interactive map. Exploration remains a separate page.
@@ -27,6 +27,7 @@ export async function createStoryMap(container){
  const low=o.elderly.find(r=>r.service==='code24').threshold;
  map.addSource('story-grids',{type:'geojson',data:storyFeatures(g,em,d,sim,low)});
  map.addLayer({id:'story-fill',type:'fill',source:'story-grids',layout:{visibility:'none'},paint:{'fill-color':'#bc492d','fill-opacity':.8}});
+ map.addLayer({id:'story-outline',type:'line',source:'story-grids',paint:{'line-color':'#fff','line-width':['interpolate',['linear'],['zoom'],9,.1,13,.6,16,1],'line-opacity':.7}});
  await boundaries(map);
  map.addLayer({id:'story-focus',type:'line',source:'boundaries',filter:['==',['get','ADM_NM'],''],paint:{'line-color':'#213f34','line-width':2.3}});
  map.addSource('story-facilities',{type:'geojson',data:facilitiesGeo(fac,'code24')});
@@ -41,7 +42,7 @@ export async function createStoryMap(container){
   if(scene==='bukmyeon'){area='의창구 북면';focus='북면';visible=true;filter=['==',['get','area'],area];showFac=true}
   if(scene==='elderly'){visible=true;filter=['get','low'];color='#bc492d'}
   if(['ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)){area='마산합포구 진동면';focus='진동면';service=scene==='ob-facilities'?'code10':'delivery';showFac=true;visible=scene==='delivery-count'||scene==='delivery-one';filter=['==',['get','area'],area];color=countColor;if(scene==='delivery-one')opacity=['case',['all',['get','deliveryKnown'],['==',['get','count'],1]],.95,.12]}
-  map.setFilter('story-focus',['==',['get','ADM_NM'],focus]);map.setFilter('story-fill',filter);map.setLayoutProperty('story-fill','visibility',visible?'visible':'none');map.setPaintProperty('story-fill','fill-color',color);map.setPaintProperty('story-fill','fill-opacity',opacity);
+  map.setFilter('story-focus',['==',['get','ADM_NM'],focus]);map.setFilter('story-fill',filter);map.setFilter('story-outline',filter);map.setLayoutProperty('story-outline','visibility',visible?'visible':'none');map.setLayoutProperty('story-fill','visibility',visible?'visible':'none');map.setPaintProperty('story-fill','fill-color',color);map.setPaintProperty('story-fill','fill-opacity',opacity);
   map.getSource('story-facilities').setData(facilitiesGeo(fac,service));map.setLayoutProperty('story-facility','visibility',showFac?'visible':'none');
   if(scene==='scenario-after')pin.addTo(map);else pin.remove();
   const nextKey=area||'all';if(nextKey!==cameraKey||force){cameraKey=nextKey;const mobile=matchMedia('(max-width:850px)').matches;const width=map.getContainer().clientWidth;map.fitBounds(boundsFor(g,area),{padding:mobile?{top:35,bottom:35,left:25,right:25}:{top:80,bottom:90,left:Math.round(width*.44),right:50},maxZoom:area?13.2:10.3,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:1100})}
