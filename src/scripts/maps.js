@@ -1,4 +1,7 @@
 import * as maplibregl from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+// MapLibre v6 needs an explicit bundled worker URL (including the Pages base path).
+maplibregl.setWorkerUrl(workerUrl);
 export const base=import.meta.env.BASE_URL;
 export const fmt=(v,d=1)=>v==null||!Number.isFinite(Number(v))?'미산출':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -1,4 +1,5 @@
 import {renderGridSVG} from './grid-svg.js';
+import {waitForGridData} from './grid-ready.js';
 import {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl} from './maps.js';
 const $=s=>document.querySelector(s),params=new URLSearchParams(location.search);
 let overview,rows,geometry,facilities,map,values,selected=[],sea,requestId=0,mapReady=false,svgMap,gridIndex=-1;
@@ -70,9 +71,11 @@ async function init(){
  map.addLayer({id:'grid-outline',type:'line',source:'grids',paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],9,.1,12,.45,16,1],'line-opacity':.8}});
  await boundaries(map);map.addLayer({id:'grid-selected',type:'line',source:'grids',filter:['==',['get','index'],-1],paint:{'line-color':'#111111','line-width':3}});addFacilities(map,facilitiesGeo(facilities,service()),service);
  map.on('click','grid-fill',e=>{if(map.queryRenderedFeatures(e.point,{layers:['facilities']}).length)return;selectGrid(Number(e.features[0].properties.index))});map.on('mouseenter','grid-fill',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','grid-fill',()=>map.getCanvas().style.cursor='');
- mapReady=true;$('#webgl-map').hidden=false;$('#map').hidden=true;setBase(map,$('#basemap').value);renderMap();map.resize();
+ mapReady=true;$('#webgl-map').classList.add('map-preparing');$('#webgl-map').hidden=false;setBase(map,$('#basemap').value);renderMap();map.resize();
  const lat=Number(params.get('lat')),lon=Number(params.get('lon')),zoom=Number(params.get('zoom'));
  if(gridIndex>=0)selectGrid(gridIndex,true);else if(params.has('lat')&&params.has('lon')&&Number.isFinite(lat)&&Math.abs(lat)<=85&&Number.isFinite(lon)&&Math.abs(lon)<=180&&zoom>=7&&zoom<=19)map.jumpTo({center:[lon,lat],zoom});else focusRegion();
+ await waitForGridData(map);
+ $('#webgl-map').classList.remove('map-preparing');$('#map').hidden=true;
  map.on('moveend',syncURL);
  map.getCanvas().addEventListener('webglcontextlost',()=>{mapReady=false;$('#webgl-map').hidden=true;$('#map').hidden=false;drawSVG();$('#status').textContent='격자 벡터지도로 전환했습니다. 확대·선택과 결과표를 계속 사용할 수 있습니다.'});
  }catch(e){map?.remove();mapReady=false;$('#webgl-map').hidden=true;$('#map').hidden=false;drawSVG();if(gridIndex>=0)selectGrid(gridIndex,true);$('#status').textContent='격자 벡터지도 · 배경지도 없이도 확대·선택할 수 있습니다.'}

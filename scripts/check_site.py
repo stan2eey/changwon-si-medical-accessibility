@@ -4,6 +4,11 @@ from html.parser import HTMLParser
 from urllib.parse import urlsplit,unquote
 import json
 root=Path('dist');base='/changwon-si-medical-accessibility/'
+# GeoJSON layers require the separately bundled MapLibre v6 worker.
+workers=list((root/'_astro').glob('maplibre-gl-worker-*.js'))
+assert workers,'MapLibre worker missing from deployment'
+bundles='\n'.join(p.read_text(encoding='utf-8') for p in (root/'_astro').glob('maps.*.js'))
+assert any(base+'_astro/'+p.name in bundles for p in workers),'Worker URL must include Pages base path'
 class Page(HTMLParser):
  def __init__(self,p):
   super().__init__();self.refs=[];self.ids=[];self.inputs=[];self.labels=set();self.scripts=[];self.feed(p.read_text(encoding='utf-8'))

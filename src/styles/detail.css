@@ -5,3 +5,4 @@
 @media(max-width:850px){.map-wrap{grid-row:auto;height:auto}.controls{max-height:none;overflow:visible}.main-map{height:55svh;min-height:380px}.map-actions{top:8px;left:8px;right:8px;gap:5px}.map-actions button{font-size:12px;padding:6px 9px}.map-legend{font-size:11px;padding:10px}.embed-mode .controls{max-height:450px;overflow:auto}.embed-mode .grid-detail{max-height:none}.embed-mode .main-map{height:450px}.inline-explorer iframe{height:1250px}.site-header nav{gap:12px}.site-header nav a{font-size:12px}}
 
 .svg-grid-map{touch-action:none;cursor:grab}.svg-grid-map:active{cursor:grabbing}
+#webgl-map.map-preparing{position:absolute;top:0;left:0;visibility:hidden;pointer-events:none}
