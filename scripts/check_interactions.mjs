@@ -55,6 +55,8 @@ $('#metric').value='time';$('#metric').dispatchEvent(new dom.window.Event('chang
 const poly=$('#map polygon');const selectedIndex=Number(poly.dataset.index);poly.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));const gridID=load('geometry.json').ids[selectedIndex];assert.equal(new URL(location.href).searchParams.get('grid_id'),gridID);assert.match($('#grid-detail').textContent,/선택한 100m 격자/);assert($('#map polygon.selected'));assert.equal($('#district').value,load('geometry.json').names[selectedIndex]);
 const beforeView=$('#map svg').getAttribute('viewBox');$('#zoom-in').click();assert.notEqual($('#map svg').getAttribute('viewBox'),beforeView);$('#map polygon.selected').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert.notEqual($('#map svg').getAttribute('viewBox'),beforeView,'selection must retain SVG zoom');
 const restoreURL=location.href;dom.window.close();dom=mount('dist/explore/index.html',restoreURL);await runExplore(mocks,renderGridSVG);assert.equal(new URL(location.href).searchParams.get('grid_id'),gridID);assert($('#grid-detail').textContent.includes(gridID));assert($('#map polygon.selected'));
+assert(!$('#grid-selection').hidden);assert($('#grid-selection-content').textContent.includes(gridID));assert.equal($('.grid-score').textContent,mocks.fmt(load('delivery-60.json').score[selectedIndex],4));
+$('#close-grid-selection').click();assert($('#grid-selection').hidden);$('#map polygon.selected').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert(!$('#grid-selection').hidden);
 $('#district').value='마산합포구 진전면';$('#district').dispatchEvent(new dom.window.Event('change'));assert(!new URL(location.href).searchParams.has('grid_id'));assert(!$('#map polygon.selected'));
 dom.window.close();
 // Exercise the map-success path and its click callback without claiming WebGL rendering.
@@ -64,6 +66,7 @@ const liveMap={addSource:(id,v)=>sources[id]=v,addLayer(){},getSource:id=>({setD
 Object.assign(liveMap,{off(){},isSourceLoaded:()=>true,querySourceFeatures:()=>sources.grids.data.features});
 await runExplore({...mocks,createMap:()=>liveMap,addFacilities:()=>sources.facilities={data:null}},renderGridSVG);assert($('#map').hidden);assert(!$('#webgl-map').hidden);assert.equal(sources.grids.data.features.length,10099);
 const bukIndex=load('geometry.json').names.indexOf('의창구 북면');events['click:grid-fill']({point:{},features:[{properties:{index:bukIndex}}]});assert.equal($('#district').value,'의창구 북면');assert.equal($('#gu').value,'의창구');assert.equal(filters['grid-selected'][2],bukIndex);assert($('#comparison-rows').textContent.includes('의창구 북면'));assert.equal(new URL(location.href).searchParams.get('grid_id'),load('geometry.json').ids[bukIndex]);
+assert(!$('#grid-selection').hidden);assert($('#grid-selection-content').textContent.includes(load('geometry.json').ids[bukIndex]));assert.equal($('.grid-score').textContent,mocks.fmt(load('code24-30.json').score[bukIndex],4));
 // A style can load while its worker never produces a grid. Keep the SVG usable.
 dom.window.close();dom=mount('dist/explore/index.html',`https://example.test${base}explore/?embed=1`);
 liveMap.isSourceLoaded=()=>false;
@@ -73,6 +76,7 @@ await pending;assert($('#webgl-map').hidden);assert(!$('#map').hidden);assert($(
 $('#map polygon').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert.match($('#grid-detail').textContent,/선택한 100m 격자/);
 dom.window.close();dom=mount('dist/cities/index.html',`https://example.test${base}cities/`);globalThis.matchMedia=()=>({matches:true});
 const citySource=fs.readFileSync('src/scripts/cities.js','utf8').replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init().catch(');await new Function(citySource)();assert.equal(document.querySelectorAll('.city-row').length,4);
+assert.equal($('#city-detail-head').children.length,2);assert.equal($('#city-detail-rows tr').children.length,6);assert.deepEqual([...$('#city-detail-rows tr').children].slice(1).map(n=>n.textContent),['2,038','207','1,887','305.2','98.2']);
 document.querySelector('[data-open="medical"]').click();assert.equal(document.querySelectorAll('.city-row').length,18);assert.equal($('#city-group').value,'medical');
 $('#city-group').value='special';$('#city-group').dispatchEvent(new dom.window.Event('change'));assert.equal(document.querySelectorAll('.city-row').length,5);assert($('#city-chart').textContent.includes('화성'));
 $('#city-subject').value='산부인과';$('#city-subject').dispatchEvent(new dom.window.Event('change'));const high=Number(document.querySelector('.city-row strong').textContent);$('#city-sort').value='asc';$('#city-sort').dispatchEvent(new dom.window.Event('change'));assert(Number(document.querySelector('.city-row strong').textContent)<=high);
