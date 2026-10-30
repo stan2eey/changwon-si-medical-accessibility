@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import PolicyOptions from '../components/PolicyOptions.astro';
 import '../styles/story.css';
 import '../styles/detail.css';
 import workforce from '../../public/data/workforce-cities.json';
@@ -68,6 +69,7 @@ const explore=(area,service='code24',metric='threshold')=>`${base}explore/?servi
  </div>
 </section>
 <section class="masan-scenario" id="masan-scenario"><div class="masan-intro"><h2>마산의료원에 분만실 4병상을 추가한다면</h2><p>기존 분만기관을 유지하고 마산의료원에서 분만실 4병상을 운영한다고 가정했습니다.</p><h3>진동면에서 30분 안의 분만기관이 한 곳인 지역에 사는 여성</h3><p class="scenario-people"><strong>약 {num(masanJd['1곳_여성_전'])}명 → {num(masanJd['1곳_여성_후'])}명</strong></p><p class="small">15~49세 여성, 차량경로가 계산된 지역 기준</p></div><div class="masan-results"><h3>진동면의 분만 접근성 점수</h3><p class="small">30분 기준, (단위 : 기대출생아 1만 명당 가중 분만실 병상 수)</p><div class="masan-bars">{[['기존 기관 기준',masanJd['점수_0병상']],['마산의료원 추가',masanJd['점수_4병상']]].map(([label,value])=><div><span>{label}</span><strong>{num(value,2)}</strong><div class="masan-track"><i style={`width:${100*Number(value)/masanJd['점수_4병상']}%`}></i></div></div>)}</div></div><div class="masan-table"><h3>지역별 변화</h3><p class="small">30분 기준, 점수는 기대출생아로 가중한 평균. (단위 : 기대출생아 1만 명당 가중 분만실 병상 수)</p><div class="table-wrap"><table><thead><tr><th rowspan="2">지역</th><th colspan="2">분만 접근성 점수</th><th colspan="2">30분 내 분만기관 1곳 지역의 여성 15~49세<br/><small>(단위 : 명)</small></th></tr><tr><th>기존 기관 기준</th><th>마산의료원 추가</th><th>기존 기관 기준</th><th>마산의료원 추가</th></tr></thead><tbody>{masan30.map(r=><tr><th>{r['지역']}</th><td>{num(r['점수_0병상'],2)}</td><td>{num(r['점수_4병상'],2)}</td><td>{num(r['1곳_여성_전'])}</td><td>{num(r['1곳_여성_후'])}</td></tr>)}</tbody></table></div><p class="source">자료: 연구자 계산, 기존 분만기관은 2026년 4월 분만가능 기관 목록 기준. 마산의료원 소재지: 마산합포구 중앙동.</p><a href={`${base}data/masan-delivery-scenario.csv`} download>분만 시나리오 전체 결과 CSV ↓</a></div></section>
+<PolicyOptions />
 <section class="inline-explorer" id="grid-map"><h2>같은 동네에서도 병원까지 가는 시간은 다릅니다.</h2><p>지도를 확대하고 원하는 위치를 누르면, 병원까지 걸리는 시간과 주변 기관 수를 볼 수 있습니다.</p><a class="button" href={`${base}explore/`}>지도 크게 보기 ↗</a><iframe title="진료과, 지역별 100m 의료접근성 지도" src={`${base}explore/?embed=1`} loading="lazy"></iframe></section>
 <noscript><figure><img src={`${base}maps/cover.svg`} alt="창원 응급의학과 30분 도달 실제 격자 결과"/><figcaption>주황: 30분 초과, 녹색: 이내, 회색: 미산출, 보라: 배편</figcaption></figure><style>.story-stage{display:none!important}.scene{min-height:0!important;padding:40px 6vw!important}.scene-copy{width:100%!important;max-width:700px!important}.scene-cover{background:#122827}</style><div class="static-story-note">지도의 스크롤 전환 없이도 본문의 수치를 읽을 수 있습니다. <a href={`${base}data/#table`}>전체 결과표 보기</a></div></noscript>
 </main><script>import '../scripts/story.js';</script></Layout>

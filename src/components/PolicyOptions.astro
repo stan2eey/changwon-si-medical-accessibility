@@ -1,0 +1,50 @@
+---
+const policies = [
+ {phase:'단기',title:'소아 야간, 휴일 진료 늘리기',description:'인근 의료기관이 요일을 나눠 진료하는 연합형 달빛어린이병원을 확대하고, 협약 병의원의 추가 진료를 지원하는 방안입니다.',detail:'지정요건을 충족하기 어려운 기관도 일부 요일과 시간대에 소아 진료를 제공할 수 있도록 지원을 검토합니다.',icon:'clock'},
+ {phase:'단기',title:'기존 분만기관의 운영 지키기',description:'가까운 대체기관이 적은 지역에서는 기존 분만기관의 당직과 인력을 지원해 분만 기능을 유지하는 방안입니다.',detail:'진동면처럼 30분 안에 갈 수 있는 분만기관이 한 곳인 지역부터 실제 운영 여부와 다른 병원으로의 이송체계를 확인합니다.',icon:'hospital'},
+ {phase:'단기',title:'출산 전 병원 가까이 머물기',description:'분만기관까지 이동 부담이 큰 임신부가 출산 전에 병원 인근 기존 숙소에 잠시 머물 수 있도록 지원하는 방안입니다.',detail:'북면, 진전면, 진동면 등의 체류 수요를 조사하고, 임신부의 선택과 의료진 의견을 바탕으로 진료와 이송을 연계한 시범사업을 검토합니다.',icon:'stay'},
+ {phase:'중기',title:'외곽지역과 거점병원 연결하기',description:'생활권별로 필요한 소아 진료, 분만, 초기 응급대응 기능을 정하고, 기존 의료기관과 협약을 맺어 진료와 이송을 연결하는 방안입니다.',detail:'북면과 대산면의 응급, 분만 연계, 웅동2동의 시 경계를 넘는 진료 협력을 점검하고 경상남도와 광역 진료협력체계를 마련합니다.',icon:'network'},
+];
+---
+<section class="policy-options" id="policy-options" aria-labelledby="policy-options-title">
+ <h2 id="policy-options-title">의료접근성을 높이기 위한 <span class="keep-phrase">다른 대안</span></h2>
+ <p class="policy-intro">보고서는 진료시간 확대, 분만기능 유지, 이동 부담 완화, 의료기관 간 협력도 제안했습니다.</p>
+ <div class="policy-grid">
+  {policies.map(policy=><article class="policy-card">
+   <div class="policy-card-top"><span>{policy.phase}</span><svg viewBox="0 0 80 56" width="80" height="56" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+    {policy.icon==='clock'&&<><path d="M9 47V19h28v28M5 47h39M18 27h10M23 22v10M18 47V36h10v11"/><circle cx="57" cy="20" r="15"/><path d="M57 10v11l7 5M48 44h23"/></>}
+    {policy.icon==='hospital'&&<><path d="M14 48V8h39v40M7 48h64M28 16h12M34 10v12M24 48V35h19v13M21 27h7M39 27h7"/><path d="M58 19h11v20H58M63 24v10M58 29h11"/></>}
+    {policy.icon==='stay'&&<><path d="M6 25 29 6l23 19M12 21v28h34V21M20 39h18M20 34v11M38 34v11M22 30h8v9M58 49V20h15v29M56 49h19M61 28h9M65.5 23.5v9"/></>}
+    {policy.icon==='network'&&<><path d="M15 14h14v14H15zM9 37h14v14H9zM56 19h18v27H56zM29 21h12v11h15M23 44h18V32M61 28h8M65 24v8M48 28l4 4-4 4"/></>}
+   </svg></div>
+   <h3>{policy.title}</h3>
+   <p>{policy.description}</p>
+   <details><summary>추진 방안</summary><p>{policy.detail}</p></details>
+  </article>)}
+ </div>
+ <details class="policy-long-term"><summary>장기 과제와 실행 기반</summary>
+  <h3>의대 유치와 지역 정착 기반</h3><p>의과대학 유치는 별도의 타당성 검토와 함께 추진할 장기 과제입니다. 기존 수련병원과의 협력, 경력개발, 정주여건 개선을 통해 양성한 의료인력이 지역에 정착할 수 있는 기반을 갖추도록 제안했습니다.</p>
+  <h3>지원 근거와 성과 점검</h3><p>현행 조례로 포괄하기 어려운 사항을 확인한 뒤, 가칭 「창원시 의료격차 해소 및 필수의료 지원 조례」 제정을 검토하도록 제안했습니다. 지원 대상, 기관 선정, 협약, 성과 평가를 정하고 생활권별 접근 여건을 매년 점검하는 내용입니다.</p>
+ </details>
+ <p class="policy-source">출처: 창원시의회 정책연구보고서(플라토 2.0), 제5장 결론 및 정책 제언.</p>
+</section>
+<style>
+ .policy-options{position:relative;z-index:8;padding:76px 6vw;background:#fffdf8;color:#24483d;border-top:1px solid #b7c2b7}
+ .policy-options h2{max-width:850px;font-size:clamp(27px,3.1vw,42px);line-height:1.4;letter-spacing:-.045em;word-break:keep-all;margin:0 0 18px}
+ .policy-intro{max-width:760px;font-size:18px;line-height:1.8;margin:0 0 34px;word-break:keep-all}
+ .policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+ .policy-card{min-width:0;border:1px solid #aebcaf;padding:25px 28px;background:#f5f6ef}
+ .policy-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;color:#526e5c}
+ .policy-card-top span{font-size:12px;font-weight:700;border-bottom:1px solid #879b8b;padding-bottom:5px}
+ .policy-card h3{font-size:clamp(21px,2vw,27px);line-height:1.4;letter-spacing:-.035em;word-break:keep-all;margin:0 0 16px}
+ .policy-card p,.policy-long-term p{font-size:16px;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;margin:0 0 14px}
+ .policy-card details{border-top:1px solid #cad3c6;padding-top:14px;margin-top:18px}
+ .policy-options summary{cursor:pointer;font-size:14px;font-weight:700;padding:8px 0}
+ .policy-options summary:focus-visible{outline:2px solid #216eaa;outline-offset:4px}
+ .policy-card details p{margin:12px 0 0}
+ .policy-long-term{margin-top:30px;padding:12px 0;border-top:1px solid #aebcaf;border-bottom:1px solid #aebcaf;max-width:900px}
+ .policy-long-term h3{font-size:19px;margin:24px 0 12px}
+ .policy-source{font-size:12px;line-height:1.7;color:#52695b;margin:20px 0 0}
+ @media(max-width:850px){.policy-options{padding:48px 6vw}.policy-grid{grid-template-columns:minmax(0,1fr);gap:16px}.policy-card{padding:22px}.policy-intro{font-size:16px}.policy-card-top{margin-bottom:10px}}
+ @media print{.policy-options{padding:24px 0}.policy-card{break-inside:avoid}.policy-grid{gap:12px}}
+</style>
