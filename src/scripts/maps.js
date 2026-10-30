@@ -74,7 +74,7 @@ export async function createStoryMap(container){
   if(scene==='jinjeon'){area='마산합포구 진전면';focus='진전면';visible=true;filter=['==',['get','area'],area];showFac=true}
   if(scene==='bukmyeon'){area='의창구 북면';focus='북면';visible=true;filter=['==',['get','area'],area];showFac=true}
   if(scene==='elderly'){visible=true;filter=['get','low'];color='#bc492d'}
-  if(['ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)){area='마산합포구 진동면';focus='진동면';service=scene==='ob-facilities'?'code10':'delivery';showFac=true;visible=scene==='delivery-count'||scene==='delivery-one';filter=['==',['get','area'],area];color=countColor;if(scene==='delivery-one')opacity=['case',['all',['get','deliveryKnown'],['==',['get','count'],1]],.95,.12]}
+  if(['ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)){area='마산합포구 진동면';focus='진동면';service=scene==='ob-facilities'?'code10':'delivery';showFac=true;visible=scene==='delivery-count'||scene==='delivery-one';filter=['==',['get','area'],area];color=countColor}
   map.setFilter('story-focus',['==',['get','ADM_NM'],focus]);map.setFilter('story-fill',filter);map.setFilter('story-outline',filter);map.setLayoutProperty('story-outline','visibility',visible?'visible':'none');map.setLayoutProperty('story-fill','visibility',visible?'visible':'none');map.setPaintProperty('story-fill','fill-color',color);map.setPaintProperty('story-fill','fill-opacity',opacity);
   const facilityStep=facilityScenes.find(s=>s.scene===scene),specialtyStep=specialtyScenes.find(s=>s.scene===scene);
   const whiteMap=Boolean(specialtyStep);

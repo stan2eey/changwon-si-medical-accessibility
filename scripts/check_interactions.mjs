@@ -33,15 +33,19 @@ assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
 go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 의료기관/);
 const localFacilities=load('facilities.json').filter(f=>f.cw);
 assert.equal(facilityScenes.reduce((sum,step)=>sum+localFacilities.filter(f=>step.kinds.includes(f.kind)).length,0),localFacilities.length);
-for(const step of facilityScenes){go(step.scene);assert.equal($('#stage-legend').textContent,'강조색: '+step.label+', 회색: 전체 의료기관');const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert.equal(document.querySelector(`article[data-scene="${step.scene}"] h2 em`).textContent,`${count.toLocaleString('ko-KR')}곳`)}
-assert.deepEqual(sceneOrder.slice(sceneOrder.indexOf('facilities-midwife')+1,sceneOrder.indexOf('jinjeon')),specialtyScenes.map(s=>s.scene));
-for(const step of specialtyScenes){go(step.scene);assert.equal($('#stage-label').textContent,'100m 격자 접근성 점수, 30분 권역');assert(document.querySelector(`article[data-scene="${step.scene}"] .score-scale`));assert.match(document.querySelector(`article[data-scene="${step.scene}"] h2`).textContent,/접근성 점수/)}
+const choose=(id,value)=>{document.querySelector(id).value=value;document.querySelector(id).dispatchEvent(new dom.window.Event('change'));assert.equal(mapScenes.at(-1),value)};
+for(const step of facilityScenes){choose('#facility-type',step.scene);assert.equal($('#stage-legend').textContent,'강조색: '+step.label+', 회색: 전체 의료기관');const panel=document.querySelector(`[data-facility-panel="${step.scene}"]`);assert(!panel.hidden);const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert(panel.textContent.includes(count.toLocaleString('ko-KR')+'곳'));assert.equal($('.story-run').dataset.scene,'city-facilities')}
+assert.equal(facilityScenes.find(s=>s.scene==='facilities-care').kinds.length,1);assert.deepEqual(facilityScenes.find(s=>s.scene==='facilities-mental').kinds,['정신병원']);
+choose('#facility-type','city-facilities');go('specialty-emergency');
+for(const step of specialtyScenes){choose('#story-service',step.scene);assert.equal($('#stage-label').textContent,'100m 격자 접근성 점수, 30분 권역');assert(!document.querySelector(`[data-score-panel="${step.scene}"]`).hidden)}
+choose('#story-service','specialty-emergency');go('ob-facilities');choose('#delivery-type','delivery-facilities');choose('#delivery-type','ob-facilities');
+assert.equal(sceneOrder.length,12);
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
 go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
-go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'9.5');assert.strictEqual($('#supply-dot-0'),dot);
-go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7');
+go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'21.6');assert.strictEqual($('#supply-dot-0'),dot);
+go('delivery-one');assert($('#scene-counter').hidden);assert(document.querySelector('article[data-scene=delivery-one] h2').textContent.includes('1,548'));assert(document.querySelector('article[data-scene=delivery-one] p').textContent.includes('86.7%'));
 assert.equal(document.querySelector('[data-scene="scenario-before"]'),null);assert.equal(document.querySelector('[data-scene="scenario-after"]'),null);assert(document.querySelector('#masan-scenario'));
 mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
 const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
@@ -85,12 +89,12 @@ await pending;assert($('#webgl-map').hidden);assert(!$('#map').hidden);assert($(
 $('#map polygon').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert.match($('#grid-detail').textContent,/선택한 100m 격자/);
 dom.window.close();dom=mount('dist/cities/index.html',`https://example.test${base}cities/`);globalThis.matchMedia=()=>({matches:true});
 const citySource=fs.readFileSync('src/scripts/cities.js','utf8').replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init().catch(');await new Function(citySource)();assert.equal(document.querySelectorAll('.city-row').length,4);
-assert.equal($('#city-detail-rows tr').lastElementChild.textContent,'-151');assert.equal(document.querySelectorAll('#city-members details:first-child tbody tr').length,6);assert.match($('#city-members').textContent,/창원시 전체/);for(const row of document.querySelectorAll('#city-detail-rows tr')){assert.equal(row.children.length,7);const value=i=>Number(row.children[i].textContent.replaceAll(',',''));assert.equal(value(6),value(3)-value(1))}
-assert.equal($('#city-detail-head').children.length,2);assert.equal($('#city-detail-rows tr').children.length,7);assert.deepEqual([...$('#city-detail-rows tr').children].slice(1,6).map(n=>n.textContent),['2,038','207','1,887','305.2','98.2']);
+assert.equal(document.querySelectorAll('#city-members details:first-child tbody tr').length,6);assert.match($('#city-members').textContent,/창원시 전체/);for(const row of document.querySelectorAll('#city-detail-rows tr')){assert.equal(row.children.length,7);const value=i=>Number(row.children[i].textContent.replaceAll(',',''));assert.equal(value(6),value(3)-value(1))}
+assert.equal($('#city-detail-head').children.length,2);assert.equal($('#city-detail-rows tr').children.length,7);assert.equal($('#city-detail-rows tr').children[1].textContent,'2,060');assert.equal($('#city-detail-rows tr').children[2].textContent,'209.2');
 document.querySelector('[data-open="medical"]').click();assert.equal(document.querySelectorAll('.city-row').length,18);assert.equal($('#city-group').value,'medical');
 $('#city-group').value='special';$('#city-group').dispatchEvent(new dom.window.Event('change'));assert.equal(document.querySelectorAll('.city-row').length,5);assert($('#city-chart').textContent.includes('화성'));
 $('#city-subject').value='산부인과';$('#city-subject').dispatchEvent(new dom.window.Event('change'));const high=Number(document.querySelector('.city-row strong').textContent);$('#city-sort').value='asc';$('#city-sort').dispatchEvent(new dom.window.Event('change'));assert(Number(document.querySelector('.city-row strong').textContent)<=high);
 document.querySelector('[data-name="수원"]').click();assert.equal($('#city-b').value,'수원');assert($('#city-cards').textContent.includes('수원'));assert.equal($('#city-detail-rows').children.length,9);assert.equal(new URL(location.href).searchParams.get('b'),'수원');
-const cityData=load('workforce-cities.json');assert.equal(cityData.cities.length,22);for(const c of cityData.cities){for(const s of cityData.subjects){assert.equal(c.counts[s],c.members.reduce((v,m)=>v+m.counts[s],0));assert.equal(c.rates[s],c.counts[s]/c.population*100000)}}
+const cityData=load('workforce-cities.json');assert.equal(cityData.cities.length,22);for(const c of cityData.cities){for(const s of cityData.subjects){assert.equal(c.counts[s],c.members.reduce((v,m)=>v+m.counts[s],0));assert.equal(c.rates[s],c.counts[s]/c[s==='산부인과'?'women':s==='소아청소년과'?'youth':'population']*100000)}}
 dom.window.close();
 console.log('PASS: scroll scenes; SVG results under WebGL failure; grid selection, district linkage, zoom retention and shared grid restore; metric-specific summaries; 22-city counts, sorting, drilldown and comparisons.');

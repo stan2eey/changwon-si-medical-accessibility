@@ -9,3 +9,6 @@
 .site-header .brand{min-width:0}.brand-mark{flex-shrink:0}.brand-report{display:flex;flex-direction:column;gap:3px;max-width:540px;line-height:1.45}.brand-title{font-size:15px;font-weight:750;letter-spacing:-.035em}.brand-subtitle{font-size:11px;font-weight:400;letter-spacing:-.015em;opacity:.8}.site-header{gap:20px}@media(max-width:1100px){.site-header,.story-site .site-header{height:auto;min-height:76px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}.brand-report{max-width:100%}.brand-title{font-size:14px}.brand-subtitle{font-size:10px}}
 
 .table-sort{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:inherit;padding:6px 0;font:inherit;font-weight:700;text-align:left;white-space:nowrap;cursor:pointer}.table-sort:hover{color:#bc492d;background:transparent}.table-sort:focus-visible{outline:2px solid #2a665a;outline-offset:4px}.sort-arrow{font-size:14px;color:#61766b}.region-results th[aria-sort="ascending"] .sort-arrow,.region-results th[aria-sort="descending"] .sort-arrow{color:#bc492d}.region-results{min-width:760px}@media print{.region-results .table-sort{display:inline!important}.sort-arrow{display:none}}
+
+/* Square interface corners, including map controls. */
+*,*::before,*::after{border-radius:0!important}
