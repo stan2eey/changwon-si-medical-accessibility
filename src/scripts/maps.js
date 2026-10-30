@@ -38,8 +38,29 @@ export async function createStoryMap(container){
  map.addLayer({id:'story-outline',type:'line',source:'story-grids',paint:{'line-color':'#fff','line-width':['interpolate',['linear'],['zoom'],9,.1,13,.6,16,1],'line-opacity':.7}});
  await boundaries(map);
  map.addLayer({id:'story-focus',type:'line',source:'boundaries',filter:['==',['get','ADM_NM'],''],paint:{'line-color':'#213f34','line-width':2.3}});
+ const localFacilities=fac.filter(f=>f.cw);
+ const pointFeatures=list=>({type:'FeatureCollection',features:list.map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name}}))});
+ map.addSource('story-all-facilities',{type:'geojson',data:pointFeatures(localFacilities)});
+ map.addLayer({id:'story-all-facility',type:'circle',source:'story-all-facilities',layout:{visibility:'none'},paint:{'circle-color':'#93999b','circle-radius':2.5,'circle-opacity':.62,'circle-stroke-color':'#fff','circle-stroke-width':.5}});
  map.addSource('story-facilities',{type:'geojson',data:facilitiesGeo(fac,'code24')});
  map.addLayer({id:'story-facility',type:'circle',source:'story-facilities',layout:{visibility:'none'},paint:{'circle-color':'#233e36','circle-radius':['interpolate',['linear'],['zoom'],9,3,13,5.5],'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+ let hospitalLabels=[];
+ function positionLabels(){
+  const occupied=[],width=map.getContainer().clientWidth,height=map.getContainer().clientHeight;
+  for(const {marker,element,facility} of hospitalLabels){
+   const point=map.project([facility.lon,facility.lat]),w=element.offsetWidth||120,h=element.offsetHeight||30;
+   const choices=[[w/2+14,0],[-w/2-14,0],[0,-h/2-15],[0,h/2+15],[w/2+14,-32],[-w/2-14,32],[w/2+14,38],[-w/2-14,-38]];
+   let best=choices[0],bestCost=Infinity;
+   for(const offset of choices){const rect={x:point.x+offset[0]-w/2,y:point.y+offset[1]-h/2,w,h};let cost=Math.max(0,8-rect.x)+Math.max(0,rect.x+w-width+8)+Math.max(0,8-rect.y)+Math.max(0,rect.y+h-height+8);cost*=100;for(const r of occupied)if(rect.x<r.x+r.w+5&&rect.x+w+5>r.x&&rect.y<r.y+r.h+5&&rect.y+h+5>r.y)cost+=10000;if(cost<bestCost){bestCost=cost;best=offset}}
+   marker.setOffset(best);occupied.push({x:point.x+best[0]-w/2,y:point.y+best[1]-h/2,w,h});
+  }
+ }
+ function showHospitalNames(list){
+  hospitalLabels.forEach(item=>item.marker.remove());hospitalLabels=[];
+  for(const facility of list){const element=document.createElement('div');element.className='story-hospital-label';element.textContent=facility.name.replace(/^의료법인.*?의료재단/,'');element.title=facility.name;const marker=new maplibregl.Marker({element,anchor:'center'}).setLngLat([facility.lon,facility.lat]).addTo(map);hospitalLabels.push({marker,element,facility})}
+  positionLabels();
+ }
+ map.on('moveend',positionLabels);
  let cameraKey='',lastScene='cover';
  const thresholdColor=field=>['case',['get','sea'],'#806a9b',['<',['get',field],0],'#8d9791',['>',['get',field],30],'#bc492d','#92b5a1'];
  const countColor=['case',['get','sea'],'#806a9b',['!', ['get','deliveryKnown']],'#8d9791',['==',['get','count'],0],'#bc492d',['==',['get','count'],1],'#d5a53b','#4b8b79'];
@@ -53,9 +74,16 @@ export async function createStoryMap(container){
   const facilityStep=facilityScenes.find(s=>s.scene===scene);
   if(scene==='city-facilities'||facilityStep)showFac=true;
   const facilityData=(scene==='city-facilities'||facilityStep)?{type:'FeatureCollection',features:fac.filter(f=>f.cw&&(!facilityStep||facilityStep.kinds.includes(f.kind))).map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name}}))}:facilitiesGeo(fac,service);
-  map.getSource('story-facilities').setData(facilityData);map.setLayoutProperty('story-facility','visibility',showFac?'visible':'none');
+  const overview=scene==='city-facilities',typeView=Boolean(facilityStep);
+  map.setLayoutProperty('story-all-facility','visibility',overview||typeView?'visible':'none');
+  map.getSource('story-facilities').setData(facilityData);map.setLayoutProperty('story-facility','visibility',showFac&&!overview?'visible':'none');
+  map.setPaintProperty('story-facility','circle-color',typeView?'#c34828':'#233e36');
+  map.setPaintProperty('story-facility','circle-radius',typeView?(scene==='facilities-advanced'?13:scene==='facilities-general'?10:6):['interpolate',['linear'],['zoom'],9,3,13,5.5]);
+  map.setPaintProperty('story-facility','circle-stroke-width',typeView?2:1.5);
+  showHospitalNames(['facilities-advanced','facilities-general'].includes(scene)?localFacilities.filter(f=>facilityStep.kinds.includes(f.kind)):[]);
+
   const nextKey=area||'all';if(nextKey!==cameraKey||force){cameraKey=nextKey;const mobile=matchMedia('(max-width:850px)').matches;const width=map.getContainer().clientWidth;map.fitBounds(boundsFor(g,area),{padding:mobile?{top:35,bottom:35,left:25,right:25}:{top:80,bottom:90,left:Math.round(width*.44),right:50},maxZoom:area?13.2:10.3,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:1100})}
  }
  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(()=>{cameraKey='';setScene(lastScene,true)});observer?.observe(map.getContainer());
- return {setScene,destroy:()=>{observer?.disconnect();map.remove()}};
+ return {setScene,destroy:()=>{observer?.disconnect();hospitalLabels.forEach(item=>item.marker.remove());map.remove()}};
 }

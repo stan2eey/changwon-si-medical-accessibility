@@ -33,7 +33,7 @@ assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
 go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 의료기관/);
 const localFacilities=load('facilities.json').filter(f=>f.cw);
 assert.equal(facilityScenes.reduce((sum,step)=>sum+localFacilities.filter(f=>step.kinds.includes(f.kind)).length,0),localFacilities.length);
-for(const step of facilityScenes){go(step.scene);assert.equal($('#stage-legend').textContent,'● '+step.label);const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert.equal(document.querySelector(`article[data-scene="${step.scene}"] h2 em`).textContent,`${count.toLocaleString('ko-KR')}곳`)}
+for(const step of facilityScenes){go(step.scene);assert.equal($('#stage-legend').textContent,'강조색: '+step.label+', 회색: 전체 의료기관');const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert.equal(document.querySelector(`article[data-scene="${step.scene}"] h2 em`).textContent,`${count.toLocaleString('ko-KR')}곳`)}
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 

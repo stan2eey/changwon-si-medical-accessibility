@@ -35,8 +35,8 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
   if(comparisonNames.has(scene)){comparison(scene==='question'?'count':scene);$('#map-place').textContent='진전면 / 북면'}
   if(scene.startsWith('supply-')){supply(scene);$('#stage-label').textContent='공급률 비교, 2026.09';$('#map-place').textContent='도시 전체의 공급'}
   if(scene==='cover')$('#stage-label').textContent='';
-  if(facilityStep){$('#stage-label').textContent='2026년 10월 수집한 의료기관 등록자료';$('#stage-legend').textContent='● '+facilityStep.label;$('#map-place').textContent=facilityStep.label+' 분포'}
-  if(scene==='city-facilities'){$('#stage-label').textContent='창원 소재 의료기관, 2026년 10월 등록자료';$('#stage-legend').textContent='● 창원 소재 의료기관';$('#map-place').textContent='창원 의료기관 분포'}
+  if(facilityStep){$('#stage-label').textContent='2026년 10월 수집한 의료기관 등록자료';$('#stage-legend').textContent='강조색: '+facilityStep.label+', 회색: 전체 의료기관';$('#map-place').textContent=facilityStep.label+' 분포'}
+  if(scene==='city-facilities'){$('#stage-label').textContent='창원 소재 의료기관, 2026년 10월 등록자료';$('#stage-legend').textContent='회색: 창원 소재 의료기관';$('#map-place').textContent='창원 의료기관 분포'}
   if(scene==='jinjeon'||scene==='bukmyeon'){
    const i=scene==='jinjeon'?0:1;$('#map-place').textContent=regions[i].area;$('#stage-legend').textContent='■ 주황: 30분 초과, 녹색: 30분 이내, 회색: 미산출, 보라: 배편';
   }
