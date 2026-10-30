@@ -17,3 +17,5 @@
 .facility-step{min-height:85svh}@media(max-width:850px){.facility-step{min-height:95svh}}
 
 .story-hospital-label{max-width:150px;padding:4px 7px;border:1px solid #e2b0a0;border-radius:3px;background:#fffdf8f5;color:#92341f;font-size:11px;font-weight:750;line-height:1.4;box-shadow:0 1px 5px #253d3326;text-align:center;pointer-events:none}@media(max-width:850px){.story-hospital-label{max-width:105px;font-size:9px;padding:3px 5px}}
+
+.story-run[data-scene^="specialty-"]{background:#fff}.story-run[data-scene^="specialty-"] .stage-shade{background:linear-gradient(90deg,#fff 0%,#fffffff5 24%,#ffffffa6 35%,#ffffff00 64%)}.specialty-step h2 em{color:#d7242e}.story-run[data-scene^="specialty-"] .stage-caption span{background:#ffffffed}@media(max-width:850px){.story-run[data-scene^="specialty-"] .stage-shade{background:linear-gradient(180deg,transparent 30svh,#ffffffcc 43svh,#fff 49svh)}}

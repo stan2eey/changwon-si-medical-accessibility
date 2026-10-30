@@ -29,7 +29,7 @@ export {maplibregl};
 
 // The article owns a single, non-interactive map. Exploration remains a separate page.
 export async function createStoryMap(container){
- const [{storyFeatures,facilityScenes},g,em,d,fac,o]=await Promise.all([import('./story-model.js'),data('geometry.json'),data('code24-30.json'),data('delivery-30.json'),data('facilities.json'),data('overview.json')]);
+ const [{storyFeatures,facilityScenes,specialtyScenes},g,em,d,fac,o]=await Promise.all([import('./story-model.js'),data('geometry.json'),data('code24-30.json'),data('delivery-30.json'),data('facilities.json'),data('overview.json')]);
  const map=createMap(container,{interactive:false});await ready(map);
  map.setPaintProperty('street','raster-saturation',-.85);map.setPaintProperty('street','raster-opacity',.58);
  const low=o.elderly.find(r=>r.service==='code24').threshold;
@@ -71,15 +71,19 @@ export async function createStoryMap(container){
   if(scene==='elderly'){visible=true;filter=['get','low'];color='#bc492d'}
   if(['ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)){area='마산합포구 진동면';focus='진동면';service=scene==='ob-facilities'?'code10':'delivery';showFac=true;visible=scene==='delivery-count'||scene==='delivery-one';filter=['==',['get','area'],area];color=countColor;if(scene==='delivery-one')opacity=['case',['all',['get','deliveryKnown'],['==',['get','count'],1]],.95,.12]}
   map.setFilter('story-focus',['==',['get','ADM_NM'],focus]);map.setFilter('story-fill',filter);map.setFilter('story-outline',filter);map.setLayoutProperty('story-outline','visibility',visible?'visible':'none');map.setLayoutProperty('story-fill','visibility',visible?'visible':'none');map.setPaintProperty('story-fill','fill-color',color);map.setPaintProperty('story-fill','fill-opacity',opacity);
-  const facilityStep=facilityScenes.find(s=>s.scene===scene);
-  if(scene==='city-facilities'||facilityStep)showFac=true;
-  const facilityData=(scene==='city-facilities'||facilityStep)?{type:'FeatureCollection',features:fac.filter(f=>f.cw&&(!facilityStep||facilityStep.kinds.includes(f.kind))).map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name}}))}:facilitiesGeo(fac,service);
+  const facilityStep=facilityScenes.find(s=>s.scene===scene),specialtyStep=specialtyScenes.find(s=>s.scene===scene);
+  const whiteMap=Boolean(specialtyStep);
+  map.setLayoutProperty('street','visibility',whiteMap?'none':'visible');map.setPaintProperty('background','background-color',whiteMap?'#fff':'#e7ebe2');
+  map.setPaintProperty('boundary','line-color',whiteMap?'#d4d9dc':'#68776d');map.setPaintProperty('gu','line-color',whiteMap?'#9aa4aa':'#263e34');
+  map.setPaintProperty('story-all-facility','circle-opacity',whiteMap?.22:.62);
+  if(scene==='city-facilities'||facilityStep||specialtyStep)showFac=true;
+  const facilityData=specialtyStep?facilitiesGeo(localFacilities,specialtyStep.service):(scene==='city-facilities'||facilityStep)?{type:'FeatureCollection',features:fac.filter(f=>f.cw&&(!facilityStep||facilityStep.kinds.includes(f.kind))).map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name}}))}:facilitiesGeo(fac,service);
   const overview=scene==='city-facilities',typeView=Boolean(facilityStep);
-  map.setLayoutProperty('story-all-facility','visibility',overview||typeView?'visible':'none');
+  map.setLayoutProperty('story-all-facility','visibility',overview||typeView||whiteMap?'visible':'none');
   map.getSource('story-facilities').setData(facilityData);map.setLayoutProperty('story-facility','visibility',showFac&&!overview?'visible':'none');
-  map.setPaintProperty('story-facility','circle-color',typeView?'#c34828':'#233e36');
-  map.setPaintProperty('story-facility','circle-radius',typeView?(scene==='facilities-advanced'?13:scene==='facilities-general'?10:6):['interpolate',['linear'],['zoom'],9,3,13,5.5]);
-  map.setPaintProperty('story-facility','circle-stroke-width',typeView?2:1.5);
+  map.setPaintProperty('story-facility','circle-color',whiteMap?'#d7242e':typeView?'#c34828':'#233e36');
+  map.setPaintProperty('story-facility','circle-radius',whiteMap?8:typeView?(scene==='facilities-advanced'?13:scene==='facilities-general'?10:6):['interpolate',['linear'],['zoom'],9,3,13,5.5]);
+  map.setPaintProperty('story-facility','circle-stroke-width',typeView||whiteMap?2:1.5);
   showHospitalNames(['facilities-advanced','facilities-general'].includes(scene)?localFacilities.filter(f=>facilityStep.kinds.includes(f.kind)):[]);
 
   const nextKey=area||'all';if(nextKey!==cameraKey||force){cameraKey=nextKey;const mobile=matchMedia('(max-width:850px)').matches;const width=map.getContainer().clientWidth;map.fitBounds(boundsFor(g,area),{padding:mobile?{top:35,bottom:35,left:25,right:25}:{top:80,bottom:90,left:Math.round(width*.44),right:50},maxZoom:area?13.2:10.3,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:1100})}
