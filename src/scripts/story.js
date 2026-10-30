@@ -25,7 +25,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
   const values=names.map(name=>Number(o.workforce.find(r=>r['구분']===name)[specialty]));
   const max=Math.ceil(Math.max(...values)/5)*5;
   $('#supply-unit').textContent=`(단위 : ${specialty==='산부인과'?'여성':specialty==='소아청소년과'?'0~19세 인구':'전체 주민'} 10만 명당 ${specialty==='전체 의사'?'의사':'전문의'} 수)`;$('#supply-title').textContent=specialty;$('#supply-max').textContent=max+'명';
-  values.forEach((v,i)=>{$('#supply-dot-'+i).setAttribute('cx',String(180+330*v/max));$('#supply-value-'+i).textContent=fmt(v,1)});
+  values.forEach((v,i)=>{$('#supply-dot-'+i).setAttribute('cx',String(180+330*v/max));$('#supply-value-'+i).textContent=fmt(v,1)+'명'});
  }
  function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=`(단위 : ${unit})`}
  function setScene(section,force=false){

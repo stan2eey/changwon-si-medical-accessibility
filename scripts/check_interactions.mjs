@@ -46,7 +46,7 @@ go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-s
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
 go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
-go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'21.6');assert.strictEqual($('#supply-dot-0'),dot);
+go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'21.6명');assert.strictEqual($('#supply-dot-0'),dot);
 go('delivery-one');assert($('#scene-counter').hidden);assert(document.querySelector('article[data-scene=delivery-one] h2').textContent.includes('1,548'));assert(document.querySelector('article[data-scene=delivery-one] p').textContent.includes('86.7%'));
 assert.equal(document.querySelector('[data-scene="scenario-before"]'),null);assert.equal(document.querySelector('[data-scene="scenario-after"]'),null);assert(document.querySelector('#masan-scenario'));
 mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
