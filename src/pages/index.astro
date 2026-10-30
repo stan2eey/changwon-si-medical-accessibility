@@ -18,7 +18,7 @@ const explore=(area,service='code24',metric='threshold')=>`${base}explore/?servi
  <div class="story-stage" role="region" aria-label="본문에 따라 바뀌는 지도와 비교 그래프">
   <div id="narrative-map" class="narrative-map"></div>
   <div id="story-fallback" class="story-fallback"><img src={`${base}maps/cover.svg`} alt="응급의학과 30분 도달여건을 나타낸 실제 100m 분석격자" width="560" height="600"/></div>
-  <div class="stage-shade"></div><div class="map-place" id="map-place">창원시</div>
+  <div class="stage-shade"></div><div class="map-place" id="map-place"></div>
   <div id="discovery-chart" class="discovery-chart" hidden>
    <div class="chart-kicker" id="comparison-kicker">전체 주민 중</div><h3 id="comparison-title">30분 초과지역 거주비율</h3>
    <div class="discovery-bars">{['진전면','북면'].map((name,i)=><div class="discovery-row"><div class="discovery-label"><span>{name}</span><strong id={`compare-value-${i}`}>—</strong></div><div class="discovery-track"><div id={`compare-bar-${i}`} class="discovery-bar"></div></div></div>)}</div>
@@ -30,11 +30,11 @@ const explore=(area,service='code24',metric='threshold')=>`${base}explore/?servi
    <p class="chart-foot">전체 인구 10만 명당 · 비교집단 합계의 인구가중률</p><nav class="supply-links"><a href={`${base}cities/?group=medical`}>17개 지역 펼쳐보기 ↗</a><a href={`${base}cities/?group=special`}>특례시별 비교 ↗</a></nav>
   </div>
   <div id="scene-counter" class="scene-counter" hidden><span id="counter-label"></span><strong id="counter-value"></strong><span id="counter-unit"></span></div>
-  <div class="stage-caption"><span id="stage-label">창원시 · 55개 읍·면·동</span><span id="stage-legend"></span></div>
+  <div class="stage-caption"><span id="stage-label"></span><span id="stage-legend"></span></div>
   <div class="story-progress"><span id="story-progress-fill"></span></div>
  </div>
  <div class="story-scenes">
-  <article class="scene scene-cover" data-scene="cover" id="opening"><div class="scene-copy"><span class="story-overline">창원 의료접근성 연구</span><h1>같은 창원,<br/>다른 <em>30분</em></h1><p class="cover-deck">병원까지의 시간은<br/>사는 곳에 따라 달라집니다.</p><span class="scroll-cue">스크롤하며 살펴보세요 <span>↓</span></span></div></article>
+  <article class="scene scene-cover" data-scene="cover" id="opening"><div class="scene-copy"><h1>같은 창원,<br/>다른 <em>30분</em></h1><p class="cover-deck">병원까지의 시간은<br/>사는 곳에 따라 달라집니다.</p><span class="scroll-cue">스크롤하며 살펴보세요 <span>↓</span></span></div></article>
   <article class="scene" data-scene="jinjeon" id="people"><div class="scene-copy"><span class="story-overline">진전면 · 응급의학과</span><h2>진전면,<br/><em>{pct(jj)}%</em></h2><p>주민 약 {num(jj.over_population)}명이 응급의학과 전문의 보유기관까지 차량으로 30분 넘게 걸리는 지역에 살고 있습니다.</p><a class="quiet-link" href={`${base}data/#evidence`}>이 숫자의 근거 ↗</a></div></article>
   <article class="scene" data-scene="rate"><div class="scene-copy"><span class="story-overline">응급의학과 기관까지 30분을 넘는 주민 비율</span><h2>{pct(jj)}%와 {pct(bk)}%.</h2><p>진전면은 전체 주민의 71.9%, 북면은 6.2%가 해당합니다. 분모는 각 지역의 전체 주민입니다.</p></div></article>
   <article class="scene" data-scene="count"><div class="scene-copy"><span class="story-overline">30분 초과지역의 거주인구</span><h2>30분 초과지역의 주민은<br/>북면이 더 많습니다.</h2><p class="scene-fact">진전면 약 <strong>{num(jj.over_population)}명</strong>.<br/>북면 약 <strong>{num(bk.over_population)}명</strong>.</p><p>전체 주민은 진전면 3,524명, 북면 44,304명입니다. 진전면은 해당 비율이 높고, 북면은 해당 주민 수가 더 많습니다.</p><a class="quiet-link" href={`${explore(jj.area)}&compare=${encodeURIComponent(bk.area)}`}>두 지역 지도·표 비교 ↗</a><br/><a class="quiet-link" href={`${base}data/#table`}>55개 읍·면·동 전체 결과 ↗</a></div></article>
