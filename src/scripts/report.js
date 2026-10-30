@@ -1,7 +1,7 @@
 import {PageFlip} from 'page-flip';
 const $=s=>document.querySelector(s),reader=$('#pdf-reader'),viewport=$('#pdf-viewport'),sheet=$('#pdf-sheet'),zoom=$('#pdf-zoom'),status=$('#pdf-status'),full=$('#pdf-fullscreen');
 const base=import.meta.env.BASE_URL;
-let pages=[],book,pageIndex=0,timer,flipping=false,lastSize='';
+let pages=[],book,pageIndex=0,timer,lastSize='';
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function controls(){
  const first=Math.floor(pageIndex/2)*2+1,last=Math.min(first+1,pages.length);
@@ -10,6 +10,8 @@ function controls(){
 }
 function build(){
  if(!pages.length)return;
+ if(book&&['flipping','user_fold'].includes(book.getState())){clearTimeout(timer);timer=setTimeout(build,200);return}
+ reader.dataset.zoom=zoom.value;
  const pad=innerWidth<=650?8:16,w=Math.max(160,viewport.clientWidth-pad),h=Math.max(160,viewport.clientHeight-pad),ratio=pages[0].height/pages[0].width;
  const fit=Math.min(w/2,h/ratio);
  const width=Math.floor(zoom.value==='fit'?fit:zoom.value==='width'?w/2:w/2*Number(zoom.value)),height=Math.floor(width*ratio);
@@ -22,13 +24,13 @@ function build(){
   const img=document.createElement('img');img.src=base+'reports/'+page.src;img.alt='보고서 '+(i+1)+'페이지';img.draggable=false;img.decoding='async';node.append(img);element.append(node);return node;
  });
  if(nodes.length%2){const blank=document.createElement('div');blank.className='book-page blank-page';blank.setAttribute('aria-label','보고서 끝, 빈 면');element.append(blank);nodes.push(blank)}
- book=new PageFlip(element,{width,height,size:'fixed',usePortrait:false,showCover:false,autoSize:false,flippingTime:reduced()?1:750,drawShadow:!reduced(),maxShadowOpacity:.22,mobileScrollSupport:false,showPageCorners:!reduced(),disableFlipByClick:false,startPage:pageIndex});
+ book=new PageFlip(element,{width,height,size:'fixed',usePortrait:false,showCover:false,autoSize:false,flippingTime:reduced()?1:650,drawShadow:!reduced(),maxShadowOpacity:.22,mobileScrollSupport:false,showPageCorners:false,disableFlipByClick:false,startPage:pageIndex});
  book.on('flip',e=>{pageIndex=e.data;controls()});
- book.on('changeState',e=>{flipping=e.data!=='read';reader.dataset.flipState=e.data});
+ book.on('changeState',e=>{reader.dataset.flipState=e.data});
  book.on('init',()=>{controls();viewport.setAttribute('aria-busy','false')});
  book.loadFromHTML(nodes);controls();viewport.scrollTop=0;viewport.scrollLeft=0;
 }
-function step(direction){if(!book||flipping)return;if(direction<0&&pageIndex<2||direction>0&&pageIndex+2>=pages.length)return;if(reduced()){direction>0?book.turnToNextPage():book.turnToPrevPage()}else{direction>0?book.flipNext('bottom'):book.flipPrev('bottom')}}
+function step(direction){if(!book||['flipping','user_fold'].includes(book.getState()))return;if(direction<0&&pageIndex<2||direction>0&&pageIndex+2>=pages.length)return;if(reduced()){direction>0?book.turnToNextPage():book.turnToPrevPage()}else{direction>0?book.flipNext('bottom'):book.flipPrev('bottom')}}
 zoom.addEventListener('change',build);
  $('#book-prev').addEventListener('click',()=>step(-1));$('#book-next').addEventListener('click',()=>step(1));
 function syncFull(){const active=!!document.fullscreenElement||reader.classList.contains('is-expanded');full.textContent=active?'전체화면 닫기':'전체화면';full.setAttribute('aria-pressed',String(active));setTimeout(build,80)}
