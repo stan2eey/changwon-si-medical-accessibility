@@ -9,7 +9,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  const jd=rows.find(r=>r.area==='마산합포구 진동면'&&r.service==='delivery'&&r.minutes===30);
  const eld=o.elderly.find(r=>r.service==='code24');
  let active='',mapController=null;
- const selectedScene=scene=>scene==='city-facilities'?$('#facility-type').value:scene==='specialty-emergency'?$('#story-service').value:scene==='ob-facilities'?$('#delivery-type').value:scene;
+ const selectedScene=scene=>scene==='facility-explore'?$('#facility-type').value:scene;
  const comparisonNames=new Set(['rate','population','count','question']);
  function comparison(mode){
   const ratio=mode==='rate',population=mode==='population',max=ratio?100:population?50000:3000;
@@ -56,7 +56,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  }
  let scheduled=false;
  function requestSync(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;sync()})}
- for(const [id,section] of [['facility-type','city-facilities'],['story-service','specialty-emergency'],['delivery-type','ob-facilities']])$('#'+id).addEventListener('change',()=>{document.querySelectorAll('[data-facility-panel]').forEach(el=>el.hidden=el.dataset.facilityPanel!==$('#facility-type').value);document.querySelectorAll('[data-score-panel]').forEach(el=>el.hidden=el.dataset.scorePanel!==$('#story-service').value);setScene(section,true)});
+ $('#facility-type').addEventListener('change',()=>{document.querySelectorAll('[data-facility-panel]').forEach(el=>el.hidden=el.dataset.facilityPanel!==$('#facility-type').value);setScene('facility-explore',true)});
  run.classList.add('story-ready');setScene('cover');sync();
  window.addEventListener('scroll',requestSync,{passive:true});window.addEventListener('resize',requestSync,{passive:true});window.addEventListener('pageshow',requestSync);window.addEventListener('hashchange',requestSync);
  // Data and narration are usable before WebGL initializes, including deep-linked scenes.

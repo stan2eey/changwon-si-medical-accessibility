@@ -25,3 +25,5 @@
 .masan-scenario{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.masan-scenario>*{min-width:0}.masan-table .table-wrap{max-width:100%;overflow-x:auto}.masan-scenario .small{white-space:normal}@media(max-width:850px){.masan-scenario{grid-template-columns:minmax(0,1fr)}}
 
 .story-select{display:block;margin:24px 0;font-size:14px;font-weight:700}.story-select select{display:block;width:100%;margin-top:8px;padding:12px;border:1px solid #42584c;background:#fff;color:#193c32;font:inherit;min-height:46px}.story-select select:focus-visible{outline:3px solid #216eaa;outline-offset:3px}.scene h2{font-size:clamp(27px,2.5vw,40px);line-height:1.4;word-break:keep-all;overflow-wrap:break-word}.scene [hidden]{display:none!important}.scenario-people strong{font-size:clamp(27px,3vw,42px)}.scene-copy{padding-bottom:24px}@media(max-width:850px){.scene h2{font-size:clamp(25px,6vw,34px)}.story-select{margin:18px 0}.scene-copy{padding-bottom:40px}}
+
+.population-note span{display:block;white-space:nowrap}

@@ -25,7 +25,7 @@ const story=fs.readFileSync('src/scripts/story.js','utf8').replace(/^import .*?;
 await new Function('mockLoader',story)(async()=>({createStoryMap:async()=>({setScene:s=>mapScenes.push(s),destroy(){}})}));await tick();
 const $=s=>document.querySelector(s);
 const bar=$('#compare-bar-0'),dot=$('#supply-dot-0');
-const go=s=>{scrollPosition=sceneOrder.indexOf(s)*1000;window.dispatchEvent(new dom.window.Event('scroll'));assert.equal($('.story-run').dataset.scene,s);assert.equal(mapScenes.at(-1),s)};
+const go=s=>{scrollPosition=sceneOrder.indexOf(s)*1000;window.dispatchEvent(new dom.window.Event('scroll'));assert.equal($('.story-run').dataset.scene,s);assert.equal(mapScenes.at(-1),s==='facility-explore'?$('#facility-type').value:s)};
 assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart').hidden);assert.equal($('#compare-value-1').textContent,'—');assert(!document.querySelector('#follow-story'));
 assert.deepEqual(storyNodes.map(n=>n.dataset.scene),sceneOrder);
 assert(sceneOrder.indexOf('supply-all')<sceneOrder.indexOf('jinjeon'));
@@ -33,13 +33,15 @@ assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
 go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 의료기관/);
 const localFacilities=load('facilities.json').filter(f=>f.cw);
 assert.equal(facilityScenes.reduce((sum,step)=>sum+localFacilities.filter(f=>step.kinds.includes(f.kind)).length,0),localFacilities.length);
-const choose=(id,value)=>{document.querySelector(id).value=value;document.querySelector(id).dispatchEvent(new dom.window.Event('change'));assert.equal(mapScenes.at(-1),value)};
-for(const step of facilityScenes){choose('#facility-type',step.scene);assert.equal($('#stage-legend').textContent,'강조색: '+step.label+', 회색: 전체 의료기관');const panel=document.querySelector(`[data-facility-panel="${step.scene}"]`);assert(!panel.hidden);const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert(panel.textContent.includes(count.toLocaleString('ko-KR')+'곳'));assert.equal($('.story-run').dataset.scene,'city-facilities')}
+const featured=['facilities-advanced','facilities-general','facilities-hospital','facilities-clinic','facilities-public'];
+assert.deepEqual(sceneOrder.slice(5,10),featured);
+for(const scene of featured){go(scene);assert(document.querySelector(`article[data-scene="${scene}"] h2`).textContent.includes('곳'))}
+go('facility-explore');
+for(const step of facilityScenes){$('#facility-type').value=step.scene;$('#facility-type').dispatchEvent(new dom.window.Event('change'));assert.equal(mapScenes.at(-1),step.scene);assert(!document.querySelector(`[data-facility-panel="${step.scene}"]`).hidden);assert.equal($('.story-run').dataset.scene,'facility-explore')}
 assert.equal(facilityScenes.find(s=>s.scene==='facilities-care').kinds.length,1);assert.deepEqual(facilityScenes.find(s=>s.scene==='facilities-mental').kinds,['정신병원']);
-choose('#facility-type','city-facilities');go('specialty-emergency');
-for(const step of specialtyScenes){choose('#story-service',step.scene);assert.equal($('#stage-label').textContent,'100m 격자 접근성 점수, 30분 권역');assert(!document.querySelector(`[data-score-panel="${step.scene}"]`).hidden)}
-choose('#story-service','specialty-emergency');go('ob-facilities');choose('#delivery-type','delivery-facilities');choose('#delivery-type','ob-facilities');
-assert.equal(sceneOrder.length,12);
+for(const step of specialtyScenes){go(step.scene);assert.equal($('#stage-label').textContent,'100m 격자 접근성 점수, 30분 권역');assert(document.querySelector(`article[data-scene="${step.scene}"] .score-scale`))}
+assert.equal($('#story-service'),null);assert.equal($('#delivery-type'),null);assert.equal(document.querySelector('article[data-scene="ob-facilities"]'),null);assert.equal(sceneOrder.length,20);
+assert.equal(document.querySelector('article[data-scene="jinjeon"] .story-overline').textContent,'응급의학과 전문의가 있는 의료기관 기준');
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
