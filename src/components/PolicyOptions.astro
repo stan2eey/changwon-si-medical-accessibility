@@ -2,7 +2,6 @@
 const policies = [
  {
   "id": "birth",
-  "phase": "단기",
   "title": "분만기관의 전문의 인건비와 당직 유지비 지원",
   "description": "산부인과 전문의와 간호인력의 인건비, 야간과 휴일의 당직 유지비를 지원하는 방안입니다. 지원기관이 제공할 진료시간과 인력 배치를 정하고, 다른 병원으로 옮겨야 할 때의 연락과 수용 확인 절차를 협약에 담습니다.",
   "summary": "당직, 운영비 지원과 전원 협약",
@@ -31,7 +30,6 @@ const policies = [
  },
  {
   "id": "stay",
-  "phase": "단기",
   "title": "병원에서 먼 임신부에게 출산 전 숙소와 이동비 지원",
   "description": "분만기관까지 멀거나 야간 교통편이 부족한 임신부에게 병원 인근 기존 주택이나 숙소를 지원하는 방안입니다. 임신부와 의료진이 체류 시기를 정하고, 보호자 동반과 외래진료 이동, 응급 이송을 함께 준비합니다.",
   "summary": "이용대상과 숙소 운영방식",
@@ -64,17 +62,12 @@ const policies = [
  },
  {
   "id": "pediatric",
-  "phase": "단기",
-  "title": "도심과 도농지역을 함께 담당하는 연합형 소아 진료",
+  "title": "도심과 도농지역을 함께 담당하는 연합형 달빛 어린이병원 운영",
   "description": "의창구 도심의 A의원은 월, 수, 금에, 도농지역의 B의원은 화, 목, 토에 진료하는 연합형 운영을 제안합니다. 진료 장소를 두 생활권에 나눠 두면 도농지역 주민도 해당 요일에는 가까운 기관에서 진료받을 수 있습니다. 창원시는 추가 진료비용을 지원하고 요일별 병원과 약국 정보를 함께 안내합니다.",
   "summary": "지역별 참여기관 선정과 운영비 지원",
-  "caseTitle": "양주시와 도봉구, 2026년 지원 사례",
-  "caseText": "양주시는 의료취약지역 야간진료에 시간당 20만 원, 하루 최대 2.5시간과 50만 원을 지원조건으로 제시합니다. 도봉구는 인접한 2개 이상 기관이 요일을 나눠 주 7일 진료하는 연합 운영을 안내합니다.",
+  "caseTitle": "도봉구, 연합형 달빛어린이병원 운영 안내",
+  "caseText": "2026년 모집안내는 인접한 2개 이상 기관이 요일을 나눠 주 7일 진료하는 연합 운영을 제시합니다. 참여기관은 공동으로 신청하고 대표기관을 정해 행정 절차를 맡습니다.",
   "sources": [
-   [
-    "양주시 시간당 운영비 지원",
-    "https://www.yangju.go.kr/www/selectBudgetBizDetail.do?dbizCd=5590000202630063&fisYear=2026&key=2707"
-   ],
    [
     "도봉구 연합 운영과 지원조건",
     "https://health.dobong.go.kr/bbs.asp?bmode=D&code=10005006&intPage=2&pcode=12741389&strSearchType=1"
@@ -90,18 +83,41 @@ const policies = [
     "도심 A의원은 월, 수, 금, 도농지역 B의원은 화, 목, 토에 맡고 일요일과 공휴일은 교대로 운영하는 예시입니다. 두 지역에서 매일 동시에 진료하는 방식은 아니므로, 요일별로 남는 진료 공백과 이동 부담을 확인해 운영일을 조정합니다. 대상 연령, 접수 마감시간, 대체기관과 협력약국도 함께 정합니다."
    ],
    [
-    "지원방식 구분",
-    "실제 추가 진료시간에 따라 운영비를 지급하거나, 정해진 진료시간을 유지하는 기관에 연간 운영비를 지원할 수 있습니다. 도봉구의 2026년 안내는 주당 운영시간에 따른 연간 운영비 1억 6,000만~3억 6,000만 원과 환자당 야간진료관리료 1만 3,890~2만 3,450원을 구분합니다. 운영비 지원과 건강보험 수가를 함께 확인해 시가 추가 부담할 비용을 정합니다."
+    "연합 운영비 지원",
+    "참여기관의 운영시간과 역할을 정하고 공동 진료표를 안내합니다. 도봉구의 2026년 안내는 주당 운영시간에 따른 연간 운영비 1억 6,000만~3억 6,000만 원과 환자당 야간진료관리료 1만 3,890~2만 3,450원을 구분합니다. 기존 운영비 지원과 건강보험 수가를 확인해 시가 추가 부담할 비용을 정합니다."
+   ]
+  ]
+ },
+ {
+  "id": "extended",
+  "title": "협약의원의 야간, 주말 추가 진료 지원",
+  "description": "달빛어린이병원 지정요건을 충족하기 어려운 기관도 일부 요일과 시간대에 진료하도록 지원합니다. 야간과 주말 진료가 부족한 생활권의 병의원을 모집해 추가 진료시간을 협약하고, 실제 진료한 시간에 따라 인건비와 운영비를 지급하는 방안입니다.",
+  "summary": "참여기관 선정과 단시간 진료 지원",
+  "caseTitle": "양주시, 시간당 추가 진료비 지원 사례",
+  "caseText": "2026년 서부권 의료취약지역 민간의료기관 지원사업은 시간당 20만 원, 하루 최대 2.5시간과 50만 원을 지원조건으로 제시합니다.",
+  "sources": [
+   [
+    "양주시 시간당 운영비 지원",
+    "https://www.yangju.go.kr/www/selectBudgetBizDetail.do?dbizCd=5590000202630063&fisYear=2026&key=2707"
+   ]
+  ],
+  "steps": [
+   [
+    "보고서에서 제안한 두 가지 지원",
+    "보고서는 협약의원의 야간, 주말 추가 진료비 지원과 달빛어린이병원 지정요건을 충족하기 어려운 기관의 일부 요일, 시간대 소아 진료 지원을 별도로 제안했습니다. 생활권의 진료 공백과 참여기관의 여건에 맞춰 적용합니다."
+   ],
+   [
+    "기관과 협약할 내용",
+    "진료 요일과 시간, 진료대상 연령, 접수 마감시간, 투입인력과 협력약국을 정합니다. 휴진 시 통보와 대체기관 안내를 포함하고, 실제 개원일과 추가 진료시간을 확인해 운영비를 지급합니다."
    ],
    [
     "단시간 시범사업 예산",
-    "달빛어린이병원 운영시간을 충족하기 어려운 기관에는 별도 시범사업을 검토합니다. 두 기관이 각각 오후 6~8시, 주 3일씩 26주 진료하고 시간당 20만 원을 지원하면 운영비는 6,240만 원입니다. 이 계산에는 일요일과 공휴일의 추가 운영비가 포함되지 않습니다. 실제 개원일, 이용자 수, 휴진 사유를 확인해 운영안을 조정합니다."
+    "두 기관이 각각 오후 6~8시, 주 3일씩 26주 진료하고 시간당 20만 원을 지원하면 운영비는 6,240만 원입니다. 일요일과 공휴일의 추가 운영비는 별도입니다. 이용자 수, 실제 개원일과 휴진 사유를 확인해 참여기관과 운영시간을 조정합니다."
    ]
   ]
  },
  {
   "id": "workforce",
-  "phase": "장기",
   "title": "의대 유치와 지역 의료인력의 장기근무 지원",
   "description": "의대 유치의 타당성 검토와 기존 의료인력의 근무 지원을 병행합니다. 교육과 수련 여건을 살피는 한편, 현재 인력이 겪는 당직 부담과 주거, 가족 정착의 어려움을 확인해 지원 항목을 정합니다.",
   "summary": "교육, 수련 및 근무 지원",
@@ -130,10 +146,9 @@ const policies = [
  },
  {
   "id": "agreement",
-  "phase": "장기",
-  "title": "지원할 비용은 조례에, 제공할 진료는 협약에 명시",
-  "description": "추가 진료 인건비, 분만 당직비, 진료협력 인력, 임신부 숙박비와 교통비의 지원 근거를 정비합니다. 지원기관이 맡을 진료일과 시간을 협약에 적고, 약속한 진료가 실제 제공됐는지 확인합니다.",
-  "summary": "지원조건과 평가항목",
+  "title": "지역 분만 인프라 기능 유지 지원",
+  "description": "분만기관의 당직, 인력과 시설이 지속적으로 운영되도록 지원 근거와 협약을 마련합니다. 가까운 대체기관이 부족한 지역을 우선 살피고, 분만 진료를 유지할 시간과 인력, 진료 중단 시 대체기관 연락 절차를 지원조건으로 정합니다.",
+  "summary": "분만기능 유지의 지원 근거와 운영조건",
   "caseTitle": "경주시, 지원 근거부터 협약까지",
   "caseText": "2024년 7월 공공보건의료 조례 제정, 8~9월 사업자 공모와 간담회를 거쳐 10월 분만기관 인건비 지원협약을 체결했습니다.",
   "sources": [
@@ -144,29 +159,26 @@ const policies = [
   ],
   "steps": [
    [
-    "조례와 공모 기준",
-    "현행 조례의 지원 범위를 확인하고 부족한 근거를 보완합니다. 지원 항목, 대상기관 선정, 지원한도, 국비와 도비 사업의 중복 조정, 정산과 환수 기준을 구체화합니다."
+    "지원 근거와 선정 기준",
+    "현행 조례로 지원할 수 있는 범위를 확인하고 분만기능 유지에 필요한 근거를 보완합니다. 기관의 실제 분만 운영, 대체기관까지의 이동시간, 필요한 인력과 운영비를 바탕으로 지원 대상과 한도를 정합니다."
    ],
    [
-    "주민에게 제공할 서비스 명시",
-    "야간진료는 담당 요일, 접수시간, 투입인력과 협력약국을 정합니다. 분만 지원은 당직 편성, 진료 중단 시 통보, 대체기관 연락 절차를 협약에 담습니다."
+    "분만 진료를 유지할 조건",
+    "기관별 당직 편성, 분만 진료시간, 대체인력 확보방식과 진료 중단 시 통보 절차를 협약에 담습니다. 마취, 수술, 신생아 진료의 자체 대응 범위와 다른 병원의 수용 확인 절차를 함께 정합니다."
    ],
    [
-    "지출과 진료 실적 함께 확인",
-    "월별 운영실적을 받고 분기별로 진료일과 시간의 이행 여부, 예산 집행을 확인합니다. 진료 유지 실적과 생활권별 접근성 변화를 바탕으로 다음 연도의 지원조건을 조정합니다."
+    "지원 이후의 운영 확인",
+    "국비와 도비 등 기존 지원과 중복되는 항목을 조정하고 정산 기준을 마련합니다. 월별 운영실적과 분기별 점검을 통해 인력 배치와 분만 진료가 유지되는지 확인합니다."
    ]
   ]
  }
 ];
-const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
 ---
 <section class="policy-options" id="policy-options" aria-labelledby="policy-options-title">
  <h2 id="policy-options-title">의료접근성을 높이기 위한 <span class="keep-phrase">정책제안</span></h2>
- {phases.map(phase=><div class:list={['policy-phase',phase.tone]}>
-  <h3 class="phase-title">{phase.name}</h3>
-  <div class="policy-grid">
-   {policies.filter(p=>p.phase===phase.name).map(policy=><article class:list={['policy-card',policy.id]}>
-    <h4>{policy.title}</h4>
+ <div class="policy-grid">
+   {policies.map(policy=><article class:list={['policy-card',policy.id]}>
+    <h3>{policy.title}</h3>
     <p class="proposal">{policy.description}</p>
     <div class="policy-visual">
     {policy.id==='birth'&&<div class="support-diagram" aria-label="분만기관 지원과 기관의 역할">
@@ -191,12 +203,18 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
       <tbody><tr>{['도심 A','도농 B','도심 A','도농 B','도심 A','도농 B','교대'].map((name,i)=><td data-shared={name} data-institution={i%2===0?'a':'b'}>{name}</td>)}</tr></tbody></table></div>
      <p class="schedule-note" aria-live="polite">진료 장소를 도심과 도농지역으로 분산해, 한 주 동안 가까운 진료기관을 이용할 수 있는 지역을 넓히는 방식입니다.</p>
     </div>}
+    {policy.id==='extended'&&<div class="extended-flow">
+     <h5>진료가 부족한 시간대를 협약으로 보완</h5>
+     <div><strong>참여기관 모집</strong><p>야간, 주말 진료가 부족한 생활권</p></div>
+     <div><strong>추가 진료시간 협약</strong><p>가능한 요일과 시간, 대상 연령을 지정</p></div>
+     <div><strong>실제 진료시간 확인 후 지원</strong><p>인건비와 운영비 지급, 휴진과 이용 실적 확인</p></div>
+    </div>}
     {policy.id==='workforce'&&<div class="support-diagram"><div><strong>의대 유치</strong><p>교육시설과 임상실습<br/>지도인력과 수련 여건</p></div><div><strong>현재 인력의 장기근무</strong><p>당직 분담과 대체인력<br/>주거, 통근, 연수 지원</p></div></div>}
     {policy.id==='agreement'&&<div class="table-scroll agreement-table"><table><caption>지원조건 예시</caption><thead><tr><th scope="col">지원할 비용</th><th scope="col">기관의 약속</th><th scope="col">확인할 실적</th></tr></thead><tbody>
-     <tr><th scope="row">추가 진료 운영비</th><td>진료일과 접수시간</td><td>실제 개원일과 진료시간</td></tr>
+     <tr><th scope="row">분만 인력 지원</th><td>근무기간과 인력 배치</td><td>실제 근무와 분만 진료</td></tr>
      <tr><th scope="row">분만 당직비</th><td>당직 인력과 대체인력</td><td>당직 편성과 진료 유지</td></tr>
     </tbody></table></div>}
-    {policy.id==='pediatric'&&<aside class="budget"><span>창원 적용 예시, 단시간 야간진료 운영비</span><strong>6,240만 원</strong><p>2개 기관 × 하루 2시간 × 주 3일 × 26주 × 시간당 20만 원<br/>일요일과 공휴일 추가 운영비는 별도</p></aside>}
+    {policy.id==='extended'&&<aside class="budget"><span>창원 적용 예시, 단시간 야간진료 운영비</span><strong>6,240만 원</strong><p>2개 기관 × 하루 2시간 × 주 3일 × 26주 × 시간당 20만 원<br/>일요일과 공휴일 추가 운영비는 별도</p></aside>}
     </div>
     {policy.caseTitle&&<div class="case"><h5>{policy.caseTitle}</h5><p>{policy.caseText}</p>
      <div class="policy-links">{policy.sources.map(([label,url])=><a href={url} target="_blank" rel="noopener noreferrer">{label}<span class="sr-only"> (새 창)</span></a>)}</div>
@@ -209,8 +227,7 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
      {policy.id==='stay'&&<div class="policy-links"><a href="https://www.ncbi.nlm.nih.gov/books/NBK304991/">WHO, 분만 대기시설</a></div>}
     </details>
    </article>)}
-  </div>
- </div>)}
+ </div>
 </section>
 <script>
  document.querySelectorAll<HTMLElement>('[data-policy-schedule]').forEach(schedule=>{
@@ -236,15 +253,11 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
  });
 </script>
 <style>
- .policy-options{position:relative;z-index:8;padding:76px 6vw;background:#fffdf8;color:#24483d;border-top:1px solid #b7c2b7}
+ .policy-options{--phase:#3f6754;--surface:#f3f6ef;position:relative;z-index:8;padding:76px 6vw;background:#fffdf8;color:#24483d;border-top:1px solid #b7c2b7}
  .policy-options h2{max-width:950px;font-size:clamp(27px,3.1vw,42px);line-height:1.4;letter-spacing:-.045em;word-break:keep-all;margin:0 0 36px}
- .policy-phase{--phase:#3f6754;--surface:#f3f6ef;margin-top:36px}
- .policy-phase.long{--phase:#796043;--surface:#f7f3eb}
- .phase-title{color:var(--phase);font-size:20px;margin:0 0 12px}
  .policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px;row-gap:0;align-items:stretch}
- .pediatric{grid-column:1/-1}
  .policy-card{display:grid;grid-row:span 5;grid-template-rows:subgrid;margin-bottom:22px;min-width:0;border:1px solid #b9c2ba;border-top:4px solid var(--phase);padding:28px;background:var(--surface)}
- .policy-card h4{font-size:clamp(22px,2vw,28px);line-height:1.5;letter-spacing:-.035em;word-break:keep-all;margin:0 0 18px;max-width:850px}
+ .policy-card h3{font-size:clamp(22px,2vw,28px);line-height:1.5;letter-spacing:-.035em;word-break:keep-all;margin:0 0 18px;max-width:850px}
  .policy-card p{font-size:16px;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;margin:0}
  .proposal{max-width:900px}.policy-card h5{font-size:16px;line-height:1.6;margin:0 0 8px}
  .support-diagram{display:grid;grid-template-columns:1fr 1fr;border:1px solid #b9c2ba;margin:24px 0;background:#fffdf8}
@@ -261,7 +274,7 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
  .table-scroll{overflow-x:auto}
  .policy-options table{border-collapse:collapse;width:100%;font-size:14px;background:#fffdf8}
  .policy-options th,.policy-options td{border:1px solid #b9c2ba;padding:12px 9px;text-align:left;line-height:1.6}
- .schedule table{min-width:480px;table-layout:fixed}.schedule th,.schedule td{text-align:center}
+ .schedule table{min-width:0;table-layout:fixed;font-size:12px}.schedule th,.schedule td{text-align:center;padding:12px 2px}.schedule th:last-child{width:64px}
  .schedule td[data-institution=b]:not([data-solo=true]){background:#e1ebf4;color:#204b68}
  .schedule td[data-institution=a],.schedule td[data-solo=true]{background:#e7eee0}
  .policy-card .schedule-note{font-size:14px;margin-top:10px}
@@ -276,7 +289,6 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
  summary{cursor:pointer;font-size:15px;font-weight:700;padding:12px 0;line-height:1.6}
  .detail-content section{margin:20px 0}.detail-content p{font-size:15px}
  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
- @media(min-width:1051px){.pediatric .detail-content{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}}
  @media(max-width:900px){.policy-grid{grid-template-columns:minmax(0,1fr)}.policy-card{display:block;grid-row:auto}}
  @media(max-width:600px){.policy-options{padding:48px 6vw}.policy-card{padding:20px}.policy-options h2{margin-bottom:26px}.support-diagram{grid-template-columns:1fr}.support-diagram>div+div{border-left:0;border-top:1px solid #b9c2ba}.stay-route{gap:7px}.stay-route strong{font-size:14px}}
  @media(max-width:600px){.schedule table{min-width:0;font-size:12px}.schedule th,.schedule td{padding:12px 2px}.schedule th:last-child{width:64px}.agreement-table table{min-width:0;font-size:13px}.agreement-table th,.agreement-table td{padding:10px 6px}}
@@ -290,5 +302,11 @@ const phases = [{name:'단기',tone:'short'},{name:'장기',tone:'long'}];
  .coverage-area>small{font-size:14px;line-height:1.7;margin-top:10px;word-break:keep-all}
  [data-shared-mode=false] .coverage-area.rural{background:#efefeb;border-style:dashed;color:#59615b}
  @media(max-width:600px){.coverage-diagram{gap:10px}.coverage-area{padding:14px}.coverage-area>small{font-size:12px}.coverage-area>strong{font-size:21px}}
+ .extended-flow{margin:24px 0}
+ .extended-flow>div{padding:16px;border:1px solid #b9c2ba;background:#fffdf8}
+ .extended-flow>div+div{border-top:0}
+ .extended-flow strong{display:block;font-size:16px;margin-bottom:6px}
+ .extended-flow p{font-size:14px}
+ .coverage-area{padding:16px}.coverage-area>small{font-size:13px}
  @media print{.policy-options{padding:24px 0}.policy-card{break-inside:avoid}.policy-grid{gap:12px}}
 </style>
