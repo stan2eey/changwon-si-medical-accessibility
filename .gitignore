@@ -4,4 +4,5 @@ dist/
 .env*
 !.env.example
 local-audit/
+public/pdfjs/
 *.log
