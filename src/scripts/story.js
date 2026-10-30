@@ -13,11 +13,11 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  const comparisonNames=new Set(['rate','population','count','question']);
  function comparison(mode){
   const ratio=mode==='rate',population=mode==='population',max=ratio?100:population?50000:3000;
-  $('#comparison-kicker').textContent=population?'전체 주민 · 분모 비교':'응급의학과 전문의 보유기관 · 30분';
-  $('#comparison-title').textContent=ratio?'30분 초과지역 거주비율 (%)':population?'두 지역의 전체 인구 (명)':'30분 초과지역 거주인구 (명)';
+  $('#comparison-kicker').textContent=population?'전체 주민, 분모 비교':'응급의학과 전문의 보유기관, 30분';
+  $('#comparison-title').textContent=ratio?'30분 초과지역 거주비율':population?'두 지역의 전체 인구':'30분 초과지역 거주인구';
   regions.forEach((r,i)=>{const value=ratio?100*r.over_population/r.target_population:population?r.target_population:r.over_population;$('#compare-value-'+i).textContent=fmt(value,ratio?1:0)+(ratio?'%':'명');$('#compare-bar-'+i).style.width=`${100*value/max}%`});
-  $('#comparison-axis').textContent=`같은 축 · 0–${fmt(max)}${ratio?'%':'명'}`;
-  $('#comparison-foot').textContent=ratio?'분모: 각 지역의 전체 주민':population?'창원 주민등록 인구 · 2026.09':'격자별 공간배분 인구 합계 · 전체 주민 기준';
+  $('#comparison-axis').textContent=`(단위 : ${ratio?'%':'명'})`;
+  $('#comparison-foot').textContent=ratio?'분모: 각 지역의 전체 주민':population?'창원 주민등록 인구, 2026.09':'격자별 공간배분 인구 합계, 전체 주민 기준';
  }
  function supply(scene){
   const specialty=scene==='supply-ob'?'산부인과':scene==='supply-peds'?'소아청소년과':'전체 의사';
@@ -27,25 +27,25 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
   $('#supply-title').textContent=specialty;$('#supply-max').textContent=max+'명';
   values.forEach((v,i)=>{$('#supply-dot-'+i).setAttribute('cx',String(180+330*v/max));$('#supply-value-'+i).textContent=fmt(v,1)});
  }
- function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=unit}
+ function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=`(단위 : ${unit})`}
  function setScene(scene){
-  if(scene===active)return;active=scene;const fallbackScene=['cover','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one','scenario-before','scenario-after'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':scene.startsWith('scenario-')?'입지 시뮬레이션 도달격자':'응급의학과 도달격자')+' · 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
+  if(scene===active)return;active=scene;const fallbackScene=['cover','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one','scenario-before','scenario-after'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':scene.startsWith('scenario-')?'입지 시뮬레이션 도달격자':'응급의학과 도달격자')+', 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
   $('#story-progress-fill').style.width=`${100*(sceneOrder.indexOf(scene)+1)/sceneOrder.length}%`;
   $('#discovery-chart').hidden=!comparisonNames.has(scene);$('#supply-chart').hidden=!scene.startsWith('supply-');$('#scene-counter').hidden=true;
-  $('#map-place').textContent='';$('#stage-label').textContent='차량시간 추정 · 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';
+  $('#map-place').textContent='';$('#stage-label').textContent='차량시간 추정, 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';
   if(comparisonNames.has(scene)){comparison(scene==='question'?'count':scene);$('#map-place').textContent='진전면 / 북면'}
-  if(scene.startsWith('supply-')){supply(scene);$('#stage-label').textContent='공급률 비교 · 2026.09';$('#map-place').textContent='도시 전체의 공급'}
+  if(scene.startsWith('supply-')){supply(scene);$('#stage-label').textContent='공급률 비교, 2026.09';$('#map-place').textContent='도시 전체의 공급'}
   if(scene==='cover')$('#stage-label').textContent='';
   if(scene==='jinjeon'||scene==='bukmyeon'){
-   const i=scene==='jinjeon'?0:1;$('#map-place').textContent=regions[i].area;$('#stage-legend').textContent='■ 주황: 30분 초과 · 녹색: 30분 이내 · 회색: 미산출 · 보라: 배편';
+   const i=scene==='jinjeon'?0:1;$('#map-place').textContent=regions[i].area;$('#stage-legend').textContent='■ 주황: 30분 초과, 녹색: 30분 이내, 회색: 미산출, 보라: 배편';
   }
-  if(scene==='elderly'){$('#stage-label').textContent='응급의학과 · 30분 접근성 하위20% 경계 이하 (동점 포함)';$('#stage-legend').textContent='■ 공간배분 추정인구 · 65세 이상';counter('접근성 하위지역의 고령 주민',fmt(eld.elderly),'명')}
+  if(scene==='elderly'){$('#stage-label').textContent='응급의학과, 30분 접근성 하위20% 경계 이하 (동점 포함)';$('#stage-legend').textContent='■ 공간배분 추정인구, 65세 이상';counter('접근성 하위지역의 고령 주민',fmt(eld.elderly),'명')}
   if(scene==='ob-facilities'||scene.startsWith('delivery-')){
-   $('#map-place').textContent='마산합포구 진동면';$('#stage-label').textContent='기관별 지도 · 2026.10 수집';
-   $('#stage-legend').textContent=scene==='ob-facilities'?'● 산부인과 전문의 보유기관':scene==='delivery-facilities'?'● 분만 분석 대상기관':'거주격자: 주황 0곳 · 황금 1곳 · 녹색 2곳 이상 · 회색 미산출 · 보라 배편';
-   if(scene==='delivery-one'){counter('30분 내 분만기관 1곳 지역 거주',fmt(100*jd.women_one/jd.women_population,1)+'%','진동면 여성 15~49세 중');$('#stage-legend').textContent='■ 황금색: 1곳인 거주격자 강조 · ● 분만 분석 대상기관'}
+   $('#map-place').textContent='마산합포구 진동면';$('#stage-label').textContent='기관별 지도, 2026.10 수집';
+   $('#stage-legend').textContent=scene==='ob-facilities'?'● 산부인과 전문의 보유기관':scene==='delivery-facilities'?'● 분만 분석 대상기관':'거주격자: 주황 0곳, 황금 1곳, 녹색 2곳 이상, 회색 미산출, 보라 배편';
+   if(scene==='delivery-one'){counter('진동면 여성 15~49세 중\n30분 내 분만기관 1곳 지역 거주',fmt(100*jd.women_one/jd.women_population,1),'%');$('#stage-legend').textContent='■ 황금색: 1곳인 거주격자 강조, ● 분만 분석 대상기관'}
   }
-  if(scene.startsWith('scenario-')){const after=scene==='scenario-after';$('#map-place').textContent='마산합포구 진전면';$('#stage-label').textContent='입지 시뮬레이션 · 응급의학과 전문의 2명';$('#stage-legend').textContent=after?'주황: 30분 초과 · 녹색: 이내 · ◇ 가상입지 기준격자':'주황: 30분 초과 · 녹색: 이내 · ● 기존 기관';counter(after?'가상 거점 추가 후':'기존 기관 배치',fmt(sim[after?'30분초과_후':'30분초과_전']),'명 · 30분 초과지역 거주인구')}
+  if(scene.startsWith('scenario-')){const after=scene==='scenario-after';$('#map-place').textContent='마산합포구 진전면';$('#stage-label').textContent='입지 시뮬레이션, 응급의학과 전문의 2명';$('#stage-legend').textContent=after?'주황: 30분 초과, 녹색: 이내, ◇ 가상입지 기준격자':'주황: 30분 초과, 녹색: 이내, ● 기존 기관';counter((after?'가상 거점 추가 후':'기존 기관 배치')+'\n30분 초과지역 거주인구',fmt(sim[after?'30분초과_후':'30분초과_전']),'명')}
   mapController?.setScene(scene);
  }
  function sync(){

@@ -30,9 +30,9 @@ assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart')
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
-go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/3,000명/);
+go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
 go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'9.5');assert.strictEqual($('#supply-dot-0'),dot);
-go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7%');
+go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7');
 go('scenario-after');assert.equal($('#counter-value').textContent,'386');go('scenario-before');assert.equal($('#counter-value').textContent,'2,532');
 mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
 const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('scenario-map.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
