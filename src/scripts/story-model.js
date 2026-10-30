@@ -1,5 +1,5 @@
 // Scene definitions also serve the DOM tests; all numbers come from the public release.
-export const sceneOrder=['cover','jinjeon','rate','count','supply-all','supply-ob','supply-peds','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one','scenario-before','scenario-after'];
+export const sceneOrder=['cover','jinjeon','rate','count','supply-all','supply-ob','supply-peds','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one'];
 export function storyFeatures(g,em,delivery,scenario,lowThreshold){
  const sea=new Set(g.sea);
  return {type:'FeatureCollection',features:g.rings.map((ring,i)=>{

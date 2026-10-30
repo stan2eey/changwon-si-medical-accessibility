@@ -33,7 +33,7 @@ go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal(
 go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
 go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'9.5');assert.strictEqual($('#supply-dot-0'),dot);
 go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7');
-go('scenario-after');assert.equal($('#counter-value').textContent,'386');go('scenario-before');assert.equal($('#counter-value').textContent,'2,532');
+assert.equal(document.querySelector('[data-scene="scenario-before"]'),null);assert.equal(document.querySelector('[data-scene="scenario-after"]'),null);assert(document.querySelector('#masan-scenario'));
 mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
 const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('scenario-map.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
 assert.equal(features.length,10099);const one=features.filter(f=>f.properties.area==='마산합포구 진동면'&&f.properties.deliveryKnown&&f.properties.count===1);assert(one.length>0);assert(features.filter(f=>f.properties.area==='마산합포구 진전면'&&f.properties.before>30&&f.properties.after>=0&&f.properties.after<=30).length>0);

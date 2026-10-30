@@ -7,7 +7,6 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  const run=$('.story-run'),scenes=[...document.querySelectorAll('.scene')];
  const regions=['마산합포구 진전면','의창구 북면'].map(area=>rows.find(r=>r.area===area&&r.service==='code24'&&r.minutes===30));
  const jd=rows.find(r=>r.area==='마산합포구 진동면'&&r.service==='delivery'&&r.minutes===30);
- const sim=o.scenario.find(r=>r['진료과']==='응급의학과'&&r['지역']==='진전면');
  const eld=o.elderly.find(r=>r.service==='code24');
  let active='',mapController=null;
  const comparisonNames=new Set(['rate','population','count','question']);
@@ -29,7 +28,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  }
  function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=`(단위 : ${unit})`}
  function setScene(scene){
-  if(scene===active)return;active=scene;const fallbackScene=['cover','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one','scenario-before','scenario-after'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':scene.startsWith('scenario-')?'입지 시뮬레이션 도달격자':'응급의학과 도달격자')+', 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
+  if(scene===active)return;active=scene;const fallbackScene=['cover','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':'응급의학과 도달격자')+', 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
   $('#story-progress-fill').style.width=`${100*(sceneOrder.indexOf(scene)+1)/sceneOrder.length}%`;
   $('#discovery-chart').hidden=!comparisonNames.has(scene);$('#supply-chart').hidden=!scene.startsWith('supply-');$('#scene-counter').hidden=true;
   $('#map-place').textContent='';$('#stage-label').textContent='차량시간 추정, 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';
@@ -45,7 +44,6 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
    $('#stage-legend').textContent=scene==='ob-facilities'?'● 산부인과 전문의 보유기관':scene==='delivery-facilities'?'● 분만 분석 대상기관':'거주격자: 주황 0곳, 황금 1곳, 녹색 2곳 이상, 회색 미산출, 보라 배편';
    if(scene==='delivery-one'){counter('진동면 여성 15~49세 중\n30분 내 분만기관 1곳 지역 거주',fmt(100*jd.women_one/jd.women_population,1),'%');$('#stage-legend').textContent='■ 황금색: 1곳인 거주격자 강조, ● 분만 분석 대상기관'}
   }
-  if(scene.startsWith('scenario-')){const after=scene==='scenario-after';$('#map-place').textContent='마산합포구 진전면';$('#stage-label').textContent='입지 시뮬레이션, 응급의학과 전문의 2명';$('#stage-legend').textContent=after?'주황: 30분 초과, 녹색: 이내, ◇ 가상입지 기준격자':'주황: 30분 초과, 녹색: 이내, ● 기존 기관';counter((after?'가상 거점 추가 후':'기존 기관 배치')+'\n30분 초과지역 거주인구',fmt(sim[after?'30분초과_후':'30분초과_전']),'명')}
   mapController?.setScene(scene);
  }
  function sync(){
