@@ -29,32 +29,32 @@ export {maplibregl};
 
 // The article owns a single, non-interactive map. Exploration remains a separate page.
 export async function createStoryMap(container){
- const [{storyFeatures},g,em,d,sim,fac,o]=await Promise.all([import('./story-model.js'),data('geometry.json'),data('code24-30.json'),data('delivery-30.json'),data('scenario-map.json'),data('facilities.json'),data('overview.json')]);
+ const [{storyFeatures},g,em,d,fac,o]=await Promise.all([import('./story-model.js'),data('geometry.json'),data('code24-30.json'),data('delivery-30.json'),data('facilities.json'),data('overview.json')]);
  const map=createMap(container,{interactive:false});await ready(map);
  map.setPaintProperty('street','raster-saturation',-.85);map.setPaintProperty('street','raster-opacity',.58);
  const low=o.elderly.find(r=>r.service==='code24').threshold;
- map.addSource('story-grids',{type:'geojson',data:storyFeatures(g,em,d,sim,low)});
+ map.addSource('story-grids',{type:'geojson',data:storyFeatures(g,em,d,low)});
  map.addLayer({id:'story-fill',type:'fill',source:'story-grids',layout:{visibility:'none'},paint:{'fill-color':'#bc492d','fill-opacity':.8}});
  map.addLayer({id:'story-outline',type:'line',source:'story-grids',paint:{'line-color':'#fff','line-width':['interpolate',['linear'],['zoom'],9,.1,13,.6,16,1],'line-opacity':.7}});
  await boundaries(map);
  map.addLayer({id:'story-focus',type:'line',source:'boundaries',filter:['==',['get','ADM_NM'],''],paint:{'line-color':'#213f34','line-width':2.3}});
  map.addSource('story-facilities',{type:'geojson',data:facilitiesGeo(fac,'code24')});
  map.addLayer({id:'story-facility',type:'circle',source:'story-facilities',layout:{visibility:'none'},paint:{'circle-color':'#233e36','circle-radius':['interpolate',['linear'],['zoom'],9,3,13,5.5],'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
- const pinElement=document.createElement('div');const diamond=document.createElement('div');diamond.className='story-pin';pinElement.append(diamond);const pin=new maplibregl.Marker({element:pinElement}).setLngLat(sim.reference_center);
  let cameraKey='',lastScene='cover';
  const thresholdColor=field=>['case',['get','sea'],'#806a9b',['<',['get',field],0],'#8d9791',['>',['get',field],30],'#bc492d','#92b5a1'];
  const countColor=['case',['get','sea'],'#806a9b',['!', ['get','deliveryKnown']],'#8d9791',['==',['get','count'],0],'#bc492d',['==',['get','count'],1],'#d5a53b','#4b8b79'];
  function setScene(scene,force=false){
   lastScene=scene;map.resize();let area='',focus='',visible=false,color=thresholdColor('before'),opacity=.8,filter=['has','area'],service='code24',showFac=false;
-  if(['jinjeon','scenario-before','scenario-after'].includes(scene)){area='마산합포구 진전면';focus='진전면';visible=true;filter=['==',['get','area'],area];showFac=true;if(scene==='scenario-after')color=thresholdColor('after')}
+  if(scene==='jinjeon'){area='마산합포구 진전면';focus='진전면';visible=true;filter=['==',['get','area'],area];showFac=true}
   if(scene==='bukmyeon'){area='의창구 북면';focus='북면';visible=true;filter=['==',['get','area'],area];showFac=true}
   if(scene==='elderly'){visible=true;filter=['get','low'];color='#bc492d'}
   if(['ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)){area='마산합포구 진동면';focus='진동면';service=scene==='ob-facilities'?'code10':'delivery';showFac=true;visible=scene==='delivery-count'||scene==='delivery-one';filter=['==',['get','area'],area];color=countColor;if(scene==='delivery-one')opacity=['case',['all',['get','deliveryKnown'],['==',['get','count'],1]],.95,.12]}
   map.setFilter('story-focus',['==',['get','ADM_NM'],focus]);map.setFilter('story-fill',filter);map.setFilter('story-outline',filter);map.setLayoutProperty('story-outline','visibility',visible?'visible':'none');map.setLayoutProperty('story-fill','visibility',visible?'visible':'none');map.setPaintProperty('story-fill','fill-color',color);map.setPaintProperty('story-fill','fill-opacity',opacity);
-  map.getSource('story-facilities').setData(facilitiesGeo(fac,service));map.setLayoutProperty('story-facility','visibility',showFac?'visible':'none');
-  if(scene==='scenario-after')pin.addTo(map);else pin.remove();
+  if(scene==='city-facilities')showFac=true;
+  const facilityData=scene==='city-facilities'?{type:'FeatureCollection',features:fac.filter(f=>f.cw&&Object.values(f.supply).some(v=>Number(v)>0)).map(f=>({type:'Feature',geometry:{type:'Point',coordinates:[f.lon,f.lat]},properties:{name:f.name}}))}:facilitiesGeo(fac,service);
+  map.getSource('story-facilities').setData(facilityData);map.setLayoutProperty('story-facility','visibility',showFac?'visible':'none');
   const nextKey=area||'all';if(nextKey!==cameraKey||force){cameraKey=nextKey;const mobile=matchMedia('(max-width:850px)').matches;const width=map.getContainer().clientWidth;map.fitBounds(boundsFor(g,area),{padding:mobile?{top:35,bottom:35,left:25,right:25}:{top:80,bottom:90,left:Math.round(width*.44),right:50},maxZoom:area?13.2:10.3,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:1100})}
  }
  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(()=>{cameraKey='';setScene(lastScene,true)});observer?.observe(map.getContainer());
- return {setScene,destroy:()=>{observer?.disconnect();pin.remove();map.remove()}};
+ return {setScene,destroy:()=>{observer?.disconnect();map.remove()}};
 }

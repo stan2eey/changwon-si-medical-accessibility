@@ -27,6 +27,10 @@ const $=s=>document.querySelector(s);
 const bar=$('#compare-bar-0'),dot=$('#supply-dot-0');
 const go=s=>{scrollPosition=sceneOrder.indexOf(s)*1000;window.dispatchEvent(new dom.window.Event('scroll'));assert.equal($('.story-run').dataset.scene,s);assert.equal(mapScenes.at(-1),s)};
 assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart').hidden);assert.equal($('#compare-value-1').textContent,'—');assert(!document.querySelector('#follow-story'));
+assert.deepEqual(storyNodes.map(n=>n.dataset.scene),sceneOrder);
+assert(sceneOrder.indexOf('supply-all')<sceneOrder.indexOf('jinjeon'));
+assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
+go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 공급기관/);
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
@@ -35,8 +39,8 @@ go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);asse
 go('delivery-count');assert($('#scene-counter').hidden);go('delivery-one');assert.equal($('#counter-value').textContent,'86.7');
 assert.equal(document.querySelector('[data-scene="scenario-before"]'),null);assert.equal(document.querySelector('[data-scene="scenario-after"]'),null);assert(document.querySelector('#masan-scenario'));
 mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
-const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('scenario-map.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
-assert.equal(features.length,10099);const one=features.filter(f=>f.properties.area==='마산합포구 진동면'&&f.properties.deliveryKnown&&f.properties.count===1);assert(one.length>0);assert(features.filter(f=>f.properties.area==='마산합포구 진전면'&&f.properties.before>30&&f.properties.after>=0&&f.properties.after<=30).length>0);
+const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
+assert.equal(features.length,10099);const one=features.filter(f=>f.properties.area==='마산합포구 진동면'&&f.properties.deliveryKnown&&f.properties.count===1);assert(one.length>0);
 dom.window.close();
 dom=mount('dist/explore/index.html',`https://example.test${base}explore/?service=code24&cut=30&district=${encodeURIComponent('의창구 북면')}&compare=${encodeURIComponent('마산합포구 진전면')}`);
 const mocks={data:async f=>load(f),createMap:()=>{throw Error('WebGL unavailable')},ready(){},boundaries(){},setBase(){},boundsFor(){},moveTo(){},facilitiesGeo(){},addFacilities(){},fmt:(v,d=1)=>v==null?'미산출':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d}),esc:v=>String(v??'').replaceAll('<','&lt;'),maplibregl:{}};
