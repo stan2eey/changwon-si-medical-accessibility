@@ -1,45 +1,43 @@
-import {getDocument,GlobalWorkerOptions} from 'pdfjs-dist';
-import worker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-GlobalWorkerOptions.workerSrc=worker;
+import {PageFlip} from 'page-flip';
 const $=s=>document.querySelector(s),reader=$('#pdf-reader'),viewport=$('#pdf-viewport'),sheet=$('#pdf-sheet'),input=$('#pdf-page'),prev=$('#pdf-prev'),next=$('#pdf-next'),zoom=$('#pdf-zoom'),status=$('#pdf-status'),full=$('#pdf-fullscreen');
 const base=import.meta.env.BASE_URL;
-let pdf,pageNumber=1,revision=0,renderTask,timer;
+let pages=[],book,pageIndex=0,timer,flipping=false,lastSize='';
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-function controls(){input.value=pageNumber;prev.disabled=!pdf||pageNumber<=1;next.disabled=!pdf||pageNumber>=pdf.numPages;input.disabled=!pdf}
-async function render(direction=0){
- if(!pdf)return;
- const ticket=++revision;
- renderTask?.cancel();
- viewport.setAttribute('aria-busy','true');status.textContent='페이지를 불러오고 있습니다.';
- try{
-  const page=await pdf.getPage(pageNumber);if(ticket!==revision)return;
-  const natural=page.getViewport({scale:1}),pad=innerWidth<=650?20:40;
-  const width=Math.max(120,viewport.clientWidth-pad),height=Math.max(120,viewport.clientHeight-pad);
-  const fit=Math.min(width/natural.width,height/natural.height);
-  const scale=zoom.value==='fit'?fit:zoom.value==='width'?width/natural.width:width/natural.width*Number(zoom.value);
-  const view=page.getViewport({scale}),pixelRatio=Math.max(2,Math.min(devicePixelRatio||1,3));
-  const canvas=document.createElement('canvas');canvas.width=Math.floor(view.width*pixelRatio);canvas.height=Math.floor(view.height*pixelRatio);canvas.style.width=view.width+'px';canvas.style.height=view.height+'px';
-  canvas.setAttribute('role','img');canvas.setAttribute('aria-label','보고서 '+pageNumber+'페이지');
-  renderTask=page.render({canvasContext:canvas.getContext('2d'),viewport:view,transform:[pixelRatio,0,0,pixelRatio,0,0]});
-  await renderTask.promise;if(ticket!==revision)return;
-  sheet.replaceChildren(canvas);viewport.scrollTop=0;viewport.scrollLeft=0;
-  if(direction&&!reduced())canvas.animate([{opacity:.4,transform:'translateX('+direction*24+'px)'},{opacity:1,transform:'translateX(0)'}],{duration:230,easing:'cubic-bezier(.2,.7,.2,1)'});
-  status.textContent=pageNumber+' / '+pdf.numPages+'페이지';$('#pdf-error').hidden=true;
- }catch(error){if(ticket===revision&&error.name!=='RenderingCancelledException'){status.textContent='페이지를 불러오지 못했습니다.';$('#pdf-error').hidden=false;console.error(error)}}
- finally{if(ticket===revision)viewport.setAttribute('aria-busy','false')}
+function controls(){
+ const first=Math.floor(pageIndex/2)*2+1,last=Math.min(first+1,pages.length);
+ input.value=first;input.disabled=!book;prev.disabled=!book||first===1;next.disabled=!book||last===pages.length;
+ status.textContent=(first===last?first:first+'–'+last)+' / '+pages.length+'페이지';
 }
-function go(value){if(!pdf)return;const target=Math.max(1,Math.min(pdf.numPages,Math.trunc(Number(value))||1));const direction=Math.sign(target-pageNumber);pageNumber=target;controls();render(direction)}
-prev.addEventListener('click',()=>go(pageNumber-1));next.addEventListener('click',()=>go(pageNumber+1));
-input.addEventListener('change',()=>go(input.value));input.addEventListener('keydown',e=>{if(e.key==='Enter'){go(input.value);input.blur()}});
-zoom.addEventListener('change',()=>render());
-function syncFull(){const active=!!document.fullscreenElement||reader.classList.contains('is-expanded');full.textContent=active?'전체화면 닫기':'전체화면';full.setAttribute('aria-pressed',String(active));setTimeout(()=>render(),60)}
+function build(){
+ if(!pages.length)return;
+ const pad=innerWidth<=650?20:40,w=Math.max(160,viewport.clientWidth-pad),h=Math.max(160,viewport.clientHeight-pad),ratio=pages[0].height/pages[0].width;
+ const fit=Math.min(w/2,h/ratio);
+ const width=Math.floor(zoom.value==='fit'?fit:zoom.value==='width'?w/2:w/2*Number(zoom.value)),height=Math.floor(width*ratio);
+ const size=width+':'+height;
+ if(size===lastSize&&book)return;lastSize=size;
+ if(book){pageIndex=book.getCurrentPageIndex();book.destroy()}
+ const element=document.createElement('div');element.className='report-book';sheet.replaceChildren(element);
+ const nodes=pages.map((page,i)=>{
+  const node=document.createElement('div');node.className='book-page';node.dataset.density='soft';
+  const img=document.createElement('img');img.src=base+'reports/'+page.src;img.alt='보고서 '+(i+1)+'페이지';img.draggable=false;img.decoding='async';node.append(img);element.append(node);return node;
+ });
+ if(nodes.length%2){const blank=document.createElement('div');blank.className='book-page blank-page';blank.setAttribute('aria-label','보고서 끝, 빈 면');element.append(blank);nodes.push(blank)}
+ book=new PageFlip(element,{width,height,size:'fixed',usePortrait:false,showCover:false,autoSize:false,flippingTime:reduced()?1:750,drawShadow:!reduced(),maxShadowOpacity:.22,mobileScrollSupport:false,showPageCorners:!reduced(),disableFlipByClick:false,startPage:pageIndex});
+ book.on('flip',e=>{pageIndex=e.data;controls()});
+ book.on('changeState',e=>{flipping=e.data!=='read';reader.dataset.flipState=e.data});
+ book.on('init',()=>{controls();viewport.setAttribute('aria-busy','false')});
+ book.loadFromHTML(nodes);controls();viewport.scrollTop=0;viewport.scrollLeft=0;
+}
+function step(direction){if(!book||flipping)return;if(direction<0&&prev.disabled||direction>0&&next.disabled)return;if(reduced()){direction>0?book.turnToNextPage():book.turnToPrevPage()}else{direction>0?book.flipNext('bottom'):book.flipPrev('bottom')}}
+prev.addEventListener('click',()=>step(-1));next.addEventListener('click',()=>step(1));
+function go(){if(!book)return;const target=Math.max(0,Math.min(pages.length-1,(Math.trunc(Number(input.value))||1)-1));pageIndex=Math.floor(target/2)*2;book.turnToPage(pageIndex);controls()}
+input.addEventListener('change',go);input.addEventListener('keydown',e=>{if(e.key==='Enter'){go();input.blur()}});
+zoom.addEventListener('change',build);
+function syncFull(){const active=!!document.fullscreenElement||reader.classList.contains('is-expanded');full.textContent=active?'전체화면 닫기':'전체화면';full.setAttribute('aria-pressed',String(active));setTimeout(build,80)}
 full.addEventListener('click',async()=>{
  try{if(document.fullscreenElement)await document.exitFullscreen();else if(reader.classList.contains('is-expanded')){reader.classList.remove('is-expanded');document.body.classList.remove('reader-expanded')}else if(reader.requestFullscreen)await reader.requestFullscreen();else{reader.classList.add('is-expanded');document.body.classList.add('reader-expanded')}}catch{reader.classList.toggle('is-expanded');document.body.classList.toggle('reader-expanded',reader.classList.contains('is-expanded'))}syncFull();
 });
 document.addEventListener('fullscreenchange',syncFull);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&reader.classList.contains('is-expanded')){reader.classList.remove('is-expanded');document.body.classList.remove('reader-expanded');syncFull()}if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();go(pageNumber+(e.key==='ArrowLeft'?-1:1))}});
-let touch;
-viewport.addEventListener('touchstart',e=>{touch=e.touches.length===1&&zoom.value==='fit'?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
-viewport.addEventListener('touchend',e=>{if(!touch)return;const dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5)go(pageNumber+(dx<0?1:-1));touch=null},{passive:true});
-new ResizeObserver(()=>{clearTimeout(timer);timer=setTimeout(()=>render(),150)}).observe(viewport);
-(async()=>{try{pdf=await getDocument({url:reader.dataset.pdf,cMapUrl:base+'pdfjs/cmaps/',cMapPacked:true,standardFontDataUrl:base+'pdfjs/standard_fonts/',wasmUrl:base+'pdfjs/wasm/'}).promise;input.max=pdf.numPages;$('#pdf-total').textContent='/ '+pdf.numPages;controls();await render()}catch(error){status.textContent='보고서를 불러오지 못했습니다.';viewport.setAttribute('aria-busy','false');$('#pdf-error').hidden=false;console.error(error)}})();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&reader.classList.contains('is-expanded')){reader.classList.remove('is-expanded');document.body.classList.remove('reader-expanded');syncFull()}if(e.altKey||e.ctrlKey||e.metaKey||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();step(e.key==='ArrowLeft'?-1:1)}});
+new ResizeObserver(()=>{clearTimeout(timer);timer=setTimeout(build,180)}).observe(viewport);
+(async()=>{try{const response=await fetch(base+'reports/pages.json');if(!response.ok)throw Error(response.status);pages=await response.json();await Promise.all(pages.slice(0,2).map(page=>new Promise((resolve,reject)=>{const img=new Image();img.onload=resolve;img.onerror=reject;img.src=base+'reports/'+page.src})));input.max=pages.length;$('#pdf-total').textContent='/ '+pages.length;build()}catch(error){status.textContent='보고서를 불러오지 못했습니다.';viewport.setAttribute('aria-busy','false');$('#pdf-error').hidden=false;console.error(error)}})();

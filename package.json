@@ -12,6 +12,7 @@
     "astro": "^7.4.4",
     "katex": "^0.19.1",
     "maplibre-gl": "^6.16.0",
+    "page-flip": "^2.0.7",
     "pdfjs-dist": "^6.4.299"
   },
   "devDependencies": {
