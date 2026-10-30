@@ -37,7 +37,9 @@ for p,page in pages.items():
  for a in page.inputs:
   assert a.get('aria-label')or a.get('id')in page.labels or a.get('type')=='checkbox',f'unlabelled control: {p}/{a}'
 main=(root/'index.html').read_text(encoding='utf-8')
-for value in ['71.9','6.2','2,532','2,730','86.7','386']:assert value in main,value
+for value in ['71.9','6.2','2,532','2,730','86.7','13.79']:assert value in main,value
+assert 'data-scene="scenario-before"' not in main
+assert 'data-scene="scenario-after"' not in main
 assert '<math' in (root/'methods/index.html').read_text(encoding='utf-8')
 g=json.loads((root/'data/geometry.json').read_text(encoding='utf-8'))
 for ring in g['rings']:
