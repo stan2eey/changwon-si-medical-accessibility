@@ -1,50 +1,75 @@
 ---
 const policies = [
- {phase:'단기',title:'소아 야간, 휴일 진료 늘리기',description:'인근 의료기관이 요일을 나눠 진료하는 연합형 달빛어린이병원을 확대하고, 협약 병의원의 추가 진료를 지원하는 방안입니다.',detail:'지정요건을 충족하기 어려운 기관도 일부 요일과 시간대에 소아 진료를 제공할 수 있도록 지원을 검토합니다.',icon:'clock'},
- {phase:'단기',title:'기존 분만기관의 운영 지키기',description:'가까운 대체기관이 적은 지역에서는 기존 분만기관의 당직과 인력을 지원해 분만 기능을 유지하는 방안입니다.',detail:'진동면처럼 30분 안에 갈 수 있는 분만기관이 한 곳인 지역부터 실제 운영 여부와 다른 병원으로의 이송체계를 확인합니다.',icon:'hospital'},
- {phase:'단기',title:'출산 전 병원 가까이 머물기',description:'분만기관까지 이동 부담이 큰 임신부가 출산 전에 병원 인근 기존 숙소에 잠시 머물 수 있도록 지원하는 방안입니다.',detail:'북면, 진전면, 진동면 등의 체류 수요를 조사하고, 임신부의 선택과 의료진 의견을 바탕으로 진료와 이송을 연계한 시범사업을 검토합니다.',icon:'stay'},
- {phase:'중기',title:'외곽지역과 거점병원 연결하기',description:'생활권별로 필요한 소아 진료, 분만, 초기 응급대응 기능을 정하고, 기존 의료기관과 협약을 맺어 진료와 이송을 연결하는 방안입니다.',detail:'북면과 대산면의 응급, 분만 연계, 웅동2동의 시 경계를 넘는 진료 협력을 점검하고 경상남도와 광역 진료협력체계를 마련합니다.',icon:'network'},
+ {phase:'단기',title:'소아 야간, 휴일 진료 늘리기',description:'여러 의료기관이 요일을 나눠 맡아 한 기관의 운영 부담을 줄이고, 야간과 휴일에 진료받을 수 있는 생활권을 넓힙니다.',
+  steps:[['기관별로 진료일 분담','참여 의향이 있는 소아 진료기관의 위치와 인력을 조사하고, 서로 다른 생활권의 기관을 연결합니다. 월, 수, 금은 A기관, 화, 목, 토는 B기관이 맡고 일요일과 공휴일은 교대로 담당하는 운영안을 협의합니다.'],['요일별로 닿는 지역 확인','기관 위치와 요일별 이동시간을 비교해 추가로 진료받을 수 있는 지역을 확인합니다. 진료 공백이 남는 요일에는 참여기관을 보완하고, 진료시간과 협력약국 운영시간을 함께 맞춥니다.'],['운영비 지원과 공동 안내','추가 진료시간에 필요한 인건비와 운영비 지원을 검토합니다. 대표기관이 공동 진료표를 관리하고, 휴진 시 대체기관과 변경 내용을 한곳에서 안내합니다.']],
+  evidence:'도봉구의 2026년 달빛어린이병원 모집안내는 인접한 2개 이상 기관이 요일을 나눠 주 7일 진료하는 연합 운영 방식을 제시합니다.',
+  sources:[['연합 운영 안내','https://health.dobong.go.kr/bbs.asp?bmode=D&code=10005006&intPage=2&pcode=12741389&strSearchType=1']]},
+ {phase:'단기',title:'기존 분만기관의 운영 지키기',description:'분만 건수가 적어도 출산에 대응할 인력과 시설은 필요합니다. 기존 분만기관의 당직과 필수 인력을 지원해 지역의 분만 기능을 유지합니다.',
+  steps:[['분만서비스의 특성 반영','분만기관은 출산 시점에 대응할 인력과 시설을 상시 확보해야 합니다. 분만 건수가 줄어도 대기 인력과 시설 유지비는 발생하며, 출혈 같은 합병증에는 신속한 처치가 필요합니다.'],['분만 건수 외에 대응 능력 지원','기관별 분만 실적, 당직 인력, 운영비와 기존 지원 내역을 확인합니다. 분만 건당 지원에 더해 야간과 휴일의 인력 확보, 당직 유지에 필요한 비용을 지원하는 방안을 검토합니다.'],['기관 간 응급대응 연결','산부인과, 마취, 수술, 신생아 진료의 대응 범위를 기관별로 정리합니다. 자체 대응이 어려울 때 연락할 병원과 수용 확인 절차를 협약에 담고, 이송 모의훈련으로 연결 상태를 점검합니다.']],
+  sources:[['심평원, 분만서비스의 고정비용','https://repository.hira.or.kr/bitstream/2019.oak/1045/1/미국 농촌지역에서의 병원서비스 접근성 확보를 위한 진료비용 지원.pdf'],['WHO, 출산 합병증과 신속한 치료','https://www.who.int/news-room/fact-sheets/detail/maternal-mortality']]},
+ {phase:'단기',title:'출산 전 병원 가까이 머물기',description:'분만기관에서 멀리 사는 임신부가 출산 전에 병원 인근 숙소에 머물도록 지원해, 출산이 임박했을 때의 이동 부담을 줄입니다.',
+  steps:[['춘천의 품안애 사례','춘천시 석사동의 응급산모 안심스테이 ‘품안애’는 LH, 강원도, 강원대병원이 협력한 임신부 거주시설입니다. 2022년 개소한 6세대 시설로, 분만기관에서 멀리 사는 임신부의 체류를 지원하는 사례입니다.'],['분만 대기시설 모델 활용','국제적으로는 병원 가까이 머물며 출산을 기다리는 시설을 Maternity Waiting Homes(MWHs), 분만 대기시설이라고 부릅니다. 창원에서는 기존 숙소를 활용해 체류 수요와 운영 가능성을 먼저 확인합니다.'],['숙소와 진료를 함께 연결','북면, 진전면, 진동면 등에서 희망자를 조사하고, 임신부의 선택과 의료진의 판단을 바탕으로 이용 시기를 정합니다. 보호자 동반, 숙박비, 식사와 교통 지원, 병원 연락과 이송 절차를 묶어 시범사업을 설계합니다.']],
+  sources:[['LH, 춘천 품안애 사례','https://www.myhome.go.kr/hws/portal/bbs/selectBoardHappyNewsDetailView.do?bbsId=BBST06&nttId=591'],['WHO, Maternity Waiting Homes','https://www.ncbi.nlm.nih.gov/books/NBK304991/']]},
+ {phase:'중기',title:'외곽지역과 거점병원 연결하기',description:'외곽지역의 의료기관과 거점병원이 역할을 나눠, 가까운 곳의 초기 진료부터 전문 치료와 이송까지 연결합니다.',
+  steps:[['생활권별 필요한 기능 정하기','북면과 대산면의 응급, 분만 연계와 웅동2동의 시 경계를 넘는 진료 수요를 살펴봅니다. 기존 기관의 진료시간과 대응 범위를 확인해 생활권별로 보완할 기능을 정합니다.'],['협약에 역할과 연락 절차 명시','지역기관의 초기 진료, 거점병원의 전문 진료와 환자 수용 역할을 구분합니다. 담당 연락창구, 수용 여부 확인, 진료정보 전달, 이송 후 회신 절차를 협약에 명시합니다.'],['행정경계를 넘는 협력 운영','경상남도와 인접 지자체가 함께 참여하는 협의체를 구성합니다. 실제 의뢰와 이송 사례를 정기적으로 검토하고, 수용 지연이나 연락 단절이 발생한 과정을 개선합니다.']],sources:[]},
+ {phase:'장기',title:'의대 유치와 지역 정착 기반 마련하기',description:'의과대학 유치의 타당성을 검토하면서, 교육받고 수련한 의료인력이 창원에서 계속 일할 여건을 함께 마련합니다.',
+  steps:[['교육과 수련 여건 검토','지역 의료 수요, 교육 인프라, 임상실습과 수련 수용 능력을 조사해 의과대학 유치의 타당성을 검토합니다. 창원경상국립대학교병원, 삼성창원병원 등 기존 수련병원과 협력 가능한 역할을 협의합니다.'],['지역에서 이어지는 경력 설계','교육, 수련, 지역기관 취업으로 이어지는 협력 경로를 설계합니다. 필수 진료과의 지도인력, 수련 환경, 경력개발 기회를 확보하고 기관 간 공동교육을 검토합니다.'],['정착을 가로막는 부담 완화','의료인력의 이직 사유와 근무 여건을 조사해 당직 부담, 주거, 가족 정착 지원을 구체화합니다. 채용 인원뿐 아니라 근속기간과 필수 진료과의 인력 유지 여부를 확인합니다.']],sources:[]},
+ {phase:'장기',title:'지속 가능한 지원체계 만들기',description:'지원 대상과 기관의 역할, 예산과 성과 점검 기준을 정해 의료접근성 개선 사업이 지속될 기반을 마련합니다.',
+  steps:[['지원 근거 정비','현행 조례로 지원하기 어려운 내용을 검토하고, 가칭 「창원시 의료격차 해소 및 필수의료 지원 조례」 제정을 추진하는 방안입니다. 지원 대상, 선정 절차, 협약, 정산과 평가 기준을 명확히 합니다.'],['역할에 맞춘 지원과 예산','추가 진료시간, 당직 유지, 환자 의뢰와 이송 등 기관이 맡을 역할을 협약에 담습니다. 다른 지원사업과 중복되는 비용을 확인하고, 연차별 소요 예산과 사업 지속 조건을 정합니다.'],['생활권별 성과 공개','진료시간, 실제 진료 인력, 의뢰와 이송 실적을 정기적으로 점검합니다. 같은 기준으로 지역별 이동시간과 접근성 변화를 비교하고, 개선이 부족한 지역의 지원 방식을 조정합니다.']],sources:[]},
 ];
+const phases = [{name:'단기',tone:'short',count:3},{name:'중기',tone:'medium',count:1},{name:'장기',tone:'long',count:2}];
 ---
 <section class="policy-options" id="policy-options" aria-labelledby="policy-options-title">
- <h2 id="policy-options-title">의료접근성을 높이기 위한 <span class="keep-phrase">다른 대안</span></h2>
- <p class="policy-intro">보고서는 진료시간 확대, 분만기능 유지, 이동 부담 완화, 의료기관 간 협력도 제안했습니다.</p>
- <div class="policy-grid">
-  {policies.map(policy=><article class="policy-card">
-   <div class="policy-card-top"><span>{policy.phase}</span><svg viewBox="0 0 80 56" width="80" height="56" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-    {policy.icon==='clock'&&<><path d="M9 47V19h28v28M5 47h39M18 27h10M23 22v10M18 47V36h10v11"/><circle cx="57" cy="20" r="15"/><path d="M57 10v11l7 5M48 44h23"/></>}
-    {policy.icon==='hospital'&&<><path d="M14 48V8h39v40M7 48h64M28 16h12M34 10v12M24 48V35h19v13M21 27h7M39 27h7"/><path d="M58 19h11v20H58M63 24v10M58 29h11"/></>}
-    {policy.icon==='stay'&&<><path d="M6 25 29 6l23 19M12 21v28h34V21M20 39h18M20 34v11M38 34v11M22 30h8v9M58 49V20h15v29M56 49h19M61 28h9M65.5 23.5v9"/></>}
-    {policy.icon==='network'&&<><path d="M15 14h14v14H15zM9 37h14v14H9zM56 19h18v27H56zM29 21h12v11h15M23 44h18V32M61 28h8M65 24v8M48 28l4 4-4 4"/></>}
-   </svg></div>
-   <h3>{policy.title}</h3>
-   <p>{policy.description}</p>
-   <details><summary>추진 방안</summary><p>{policy.detail}</p></details>
-  </article>)}
- </div>
- <details class="policy-long-term"><summary>장기 과제와 실행 기반</summary>
-  <h3>의대 유치와 지역 정착 기반</h3><p>의과대학 유치는 별도의 타당성 검토와 함께 추진할 장기 과제입니다. 기존 수련병원과의 협력, 경력개발, 정주여건 개선을 통해 양성한 의료인력이 지역에 정착할 수 있는 기반을 갖추도록 제안했습니다.</p>
-  <h3>지원 근거와 성과 점검</h3><p>현행 조례로 포괄하기 어려운 사항을 확인한 뒤, 가칭 「창원시 의료격차 해소 및 필수의료 지원 조례」 제정을 검토하도록 제안했습니다. 지원 대상, 기관 선정, 협약, 성과 평가를 정하고 생활권별 접근 여건을 매년 점검하는 내용입니다.</p>
- </details>
- <p class="policy-source">출처: 창원시의회 정책연구보고서(플라토 2.0), 제5장 결론 및 정책 제언.</p>
+ <h2 id="policy-options-title">의료접근성을 높이기 위한 <span class="keep-phrase">정책제안</span></h2>
+ {phases.map(phase=><div class:list={['policy-phase',phase.tone]}>
+  <h3 class="phase-title">{phase.name}<span>{phase.count}개 제안</span></h3>
+  <div class="policy-grid">
+   {policies.filter(policy=>policy.phase===phase.name).map(policy=><article class="policy-card">
+    <h4>{policy.title}</h4>
+    <p>{policy.description}</p>
+    <details><summary>추진 방안</summary>
+     {policy.title==='소아 야간, 휴일 진료 늘리기'&&<div class="schedule">
+      <p class="schedule-title">기관별 요일 분담 예시</p>
+      <div class="schedule-row"><strong>기존</strong><span>A기관이 월요일부터 일요일까지 담당</span></div>
+      <div class="schedule-row"><strong>개선</strong><span>A기관, 월 / 수 / 금<br/>B기관, 화 / 목 / 토<br/>일요일과 공휴일, 기관 간 교대</span></div>
+     </div>}
+     <ol>{policy.steps.map(([title,body])=><li><h5>{title}</h5><p>{body}</p></li>)}</ol>
+     {'evidence' in policy&&<p class="evidence">{policy.evidence}</p>}
+     {policy.sources.length>0&&<div class="policy-links">{policy.sources.map(([label,url])=><a href={url} target="_blank" rel="noopener noreferrer">{label}<span class="sr-only"> (새 창)</span></a>)}</div>}
+    </details>
+   </article>)}
+  </div>
+ </div>)}
 </section>
 <style>
  .policy-options{position:relative;z-index:8;padding:76px 6vw;background:#fffdf8;color:#24483d;border-top:1px solid #b7c2b7}
- .policy-options h2{max-width:850px;font-size:clamp(27px,3.1vw,42px);line-height:1.4;letter-spacing:-.045em;word-break:keep-all;margin:0 0 18px}
- .policy-intro{max-width:760px;font-size:18px;line-height:1.8;margin:0 0 34px;word-break:keep-all}
- .policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
- .policy-card{min-width:0;border:1px solid #aebcaf;padding:25px 28px;background:#f5f6ef}
- .policy-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;color:#526e5c}
- .policy-card-top span{font-size:12px;font-weight:700;border-bottom:1px solid #879b8b;padding-bottom:5px}
- .policy-card h3{font-size:clamp(21px,2vw,27px);line-height:1.4;letter-spacing:-.035em;word-break:keep-all;margin:0 0 16px}
- .policy-card p,.policy-long-term p{font-size:16px;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;margin:0 0 14px}
- .policy-card details{border-top:1px solid #cad3c6;padding-top:14px;margin-top:18px}
- .policy-options summary{cursor:pointer;font-size:14px;font-weight:700;padding:8px 0}
- .policy-options summary:focus-visible{outline:2px solid #216eaa;outline-offset:4px}
- .policy-card details p{margin:12px 0 0}
- .policy-long-term{margin-top:30px;padding:12px 0;border-top:1px solid #aebcaf;border-bottom:1px solid #aebcaf;max-width:900px}
- .policy-long-term h3{font-size:19px;margin:24px 0 12px}
- .policy-source{font-size:12px;line-height:1.7;color:#52695b;margin:20px 0 0}
- @media(max-width:850px){.policy-options{padding:48px 6vw}.policy-grid{grid-template-columns:minmax(0,1fr);gap:16px}.policy-card{padding:22px}.policy-intro{font-size:16px}.policy-card-top{margin-bottom:10px}}
+ .policy-options h2{max-width:950px;font-size:clamp(27px,3.1vw,42px);line-height:1.4;letter-spacing:-.045em;word-break:keep-all;margin:0 0 36px}
+ .policy-phase{--phase:#3f6754;--surface:#f3f6ef;margin-top:30px}
+ .policy-phase.medium{--phase:#365f78;--surface:#f0f5f8}
+ .policy-phase.long{--phase:#796043;--surface:#f7f3eb}
+ .phase-title{display:flex;align-items:baseline;gap:14px;color:var(--phase);font-size:20px;margin:0 0 12px}
+ .phase-title span{font-size:13px;font-weight:400}
+ .policy-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+ .medium .policy-grid{grid-template-columns:minmax(0,1fr)}
+ .long .policy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .policy-card{min-width:0;border:1px solid #b9c2ba;border-top:4px solid var(--phase);padding:24px;background:var(--surface)}
+ .policy-card h4{font-size:clamp(21px,1.8vw,26px);line-height:1.45;letter-spacing:-.035em;word-break:keep-all;margin:0 0 16px}
+ .policy-card p{font-size:16px;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;margin:0}
+ .policy-card details{border-top:1px solid #c4ccc4;padding-top:10px;margin-top:20px}
+ .policy-options summary{cursor:pointer;font-size:15px;font-weight:700;padding:8px 0}
+ .policy-options summary:focus-visible,.policy-links a:focus-visible{outline:2px solid #216eaa;outline-offset:4px}
+ .policy-card ol{padding-left:20px;margin:20px 0 0}
+ .policy-card li{padding-left:3px;margin-bottom:20px}
+ .policy-card h5{font-size:16px;line-height:1.6;margin:0 0 7px}
+ .schedule{margin-top:16px;background:#fffdf8;border:1px solid #b9c2ba;padding:14px}
+ .schedule .schedule-title{font-weight:700;font-size:14px;margin-bottom:10px}
+ .schedule-row{display:grid;grid-template-columns:32px minmax(0,1fr);gap:9px;font-size:14px;line-height:1.8;word-break:keep-all;padding:9px 0;border-top:1px solid #d6dcd1}
+ .policy-card .evidence{font-size:14px;margin-top:18px;color:#465a50}
+ .policy-links{display:flex;flex-direction:column;align-items:start;gap:10px;margin-top:20px}
+ .policy-links a{font-size:13px;line-height:1.6;text-decoration:underline;text-underline-offset:3px;color:#345f69;overflow-wrap:anywhere}
+ .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ @media(min-width:1051px){.medium .policy-card ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}.medium .policy-card>p{max-width:850px}}
+ @media(max-width:1050px){.policy-grid,.long .policy-grid{grid-template-columns:minmax(0,1fr)}}
+ @media(max-width:850px){.policy-options{padding:48px 6vw}.policy-card{padding:22px}.policy-options h2{margin-bottom:26px}}
  @media print{.policy-options{padding:24px 0}.policy-card{break-inside:avoid}.policy-grid{gap:12px}}
 </style>
