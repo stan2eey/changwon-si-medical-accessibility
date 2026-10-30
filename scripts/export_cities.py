@@ -23,6 +23,13 @@ for name,units in groups.items():
  population=sum(int(r['pop']) for r in selected)
  counts={s:sum(int(r[s]) for r in selected) for s in subjects}
  out.append(dict(name=name,group='changwon' if name=='창원' else 'medical' if name in med else 'special',population=population,counts=counts,rates={s:counts[s]/population*100000 for s in subjects},members=[dict(name=r['unit'],code=codes.get(r['unit']),population=int(r['pop']),counts={s:int(r[s]) for s in subjects}) for r in selected]))
+gu_source=root/'output/national_access_20261028/창원_구별_기본현황_2026_9.csv'
+gu_rows=list(csv.DictReader(gu_source.open(encoding='utf-8-sig')))
+cw=next(c for c in out if c['name']=='창원')
+cw['members']=[dict(name=r['구'],population=int(r['인구']),counts={s:int(r['의사' if s=='전체 의사' else s]) for s in subjects}) for r in gu_rows if r['구']!='창원시']
+assert len(cw['members'])==5
+assert sum(m['population'] for m in cw['members'])==cw['population']
+for s in subjects:assert sum(m['counts'][s] for m in cw['members'])==cw['counts'][s],s
 overview=json.loads((base/'public/data/overview.json').read_text(encoding='utf-8'))
 for c in out:
  old=next((r for r in overview['workforce'] if r['구분']==c['name']),None)
