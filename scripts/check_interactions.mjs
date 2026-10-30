@@ -29,7 +29,7 @@ const go=s=>{scrollPosition=sceneOrder.indexOf(s)*1000;window.dispatchEvent(new 
 assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart').hidden);assert.equal($('#compare-value-1').textContent,'—');assert(!document.querySelector('#follow-story'));
 assert.deepEqual(storyNodes.map(n=>n.dataset.scene),sceneOrder);
 assert(sceneOrder.indexOf('supply-all')<sceneOrder.indexOf('jinjeon'));
-assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
+assert(!sceneOrder.includes('rate'));
 go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 의료기관/);
 const localFacilities=load('facilities.json').filter(f=>f.cw);
 assert.equal(facilityScenes.reduce((sum,step)=>sum+localFacilities.filter(f=>step.kinds.includes(f.kind)).length,0),localFacilities.length);
@@ -40,16 +40,15 @@ go('facility-explore');
 for(const step of facilityScenes){$('#facility-type').value=step.scene;$('#facility-type').dispatchEvent(new dom.window.Event('change'));assert.equal(mapScenes.at(-1),step.scene);assert(!document.querySelector(`[data-facility-panel="${step.scene}"]`).hidden);assert.equal($('.story-run').dataset.scene,'facility-explore')}
 assert.equal(facilityScenes.find(s=>s.scene==='facilities-care').kinds.length,1);assert.deepEqual(facilityScenes.find(s=>s.scene==='facilities-mental').kinds,['정신병원']);
 for(const step of specialtyScenes){go(step.scene);assert.equal($('#stage-label').textContent,'100m 격자 접근성 점수, 30분 권역');assert(document.querySelector(`article[data-scene="${step.scene}"] .score-scale`))}
-assert.equal($('#story-service'),null);assert.equal($('#delivery-type'),null);assert.equal(document.querySelector('article[data-scene="ob-facilities"]'),null);assert.equal(sceneOrder.length,20);
+assert.equal($('#story-service'),null);assert.equal($('#delivery-type'),null);assert.equal(document.querySelector('article[data-scene="ob-facilities"]'),null);assert.equal(sceneOrder.length,19);
 assert.equal(document.querySelector('article[data-scene="jinjeon"] .story-overline').textContent,'응급의학과 전문의가 있는 의료기관 기준');
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
-go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
-go('count');assert.equal($('#compare-value-1').textContent,'2,730명');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
+go('count');assert.equal($('#compare-value-0').textContent,'2,532명(전체 주민의 71.9%)');assert.equal($('#compare-value-1').textContent,'2,730명(전체 주민의 6.2%)');assert.strictEqual($('#compare-bar-0'),bar);assert.match($('#comparison-axis').textContent,/\(단위 : 명\)/);
 go('supply-ob');assert.match($('#supply-title').textContent,/산부인과/);assert.equal($('#supply-value-0').textContent,'21.6명');assert.strictEqual($('#supply-dot-0'),dot);
 go('delivery-one');assert($('#scene-counter').hidden);assert(document.querySelector('article[data-scene=delivery-one] h2').textContent.includes('1,548'));assert(document.querySelector('article[data-scene=delivery-one] p').textContent.includes('86.7%'));
 assert.equal(document.querySelector('[data-scene="scenario-before"]'),null);assert.equal(document.querySelector('[data-scene="scenario-after"]'),null);assert(document.querySelector('#masan-scenario'));
-mobile=true;go('rate');assert.equal($('#compare-value-1').textContent,'6.2%');go('count');assert.equal($('#compare-value-1').textContent,'2,730명');
+mobile=true;go('count');assert.equal($('#compare-value-1').textContent,'2,730명(전체 주민의 6.2%)');
 const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
 assert.equal(features.length,10099);const one=features.filter(f=>f.properties.area==='마산합포구 진동면'&&f.properties.deliveryKnown&&f.properties.count===1);assert(one.length>0);
 dom.window.close();

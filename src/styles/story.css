@@ -29,3 +29,5 @@
 .population-note span{display:block;white-space:nowrap}
 
 .copy-line{display:block}.keep-phrase{white-space:nowrap}.workforce-copy{word-break:keep-all;text-wrap:pretty}.scene .workforce-heading{font-size:clamp(25px,2.35vw,36px);line-height:1.45}@media(max-width:850px){.scene .workforce-heading{font-size:clamp(23px,6vw,32px)}}
+
+.comparison-facts>span{display:block;margin-bottom:8px}.comparison-facts small{font-size:15px;margin-left:5px;white-space:nowrap}.discovery-label strong small{display:block;font-size:15px;font-weight:500;letter-spacing:0;line-height:1.7}.story-run[data-scene=count] .discovery-label strong{font-size:clamp(28px,3vw,42px)}

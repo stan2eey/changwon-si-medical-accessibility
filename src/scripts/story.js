@@ -15,7 +15,7 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
   const ratio=mode==='rate',population=mode==='population',max=ratio?100:population?50000:3000;
   $('#comparison-kicker').textContent=population?'전체 주민, 분모 비교':'응급의학과 전문의 보유기관, 30분';
   $('#comparison-title').textContent=ratio?'30분 초과지역 거주비율':population?'두 지역의 전체 인구':'30분 초과지역 거주인구';
-  regions.forEach((r,i)=>{const value=ratio?100*r.over_population/r.target_population:population?r.target_population:r.over_population;$('#compare-value-'+i).textContent=fmt(value,ratio?1:0)+(ratio?'%':'명');$('#compare-bar-'+i).style.width=`${100*value/max}%`});
+  regions.forEach((r,i)=>{const value=ratio?100*r.over_population/r.target_population:population?r.target_population:r.over_population;$('#compare-value-'+i).innerHTML=fmt(value,ratio?1:0)+(ratio?'%':'명')+(mode==='count'?'<small>(전체 주민의 '+fmt(100*r.over_population/r.target_population,1)+'%)</small>':'');$('#compare-bar-'+i).style.width=`${100*value/max}%`});
   $('#comparison-axis').textContent=`(단위 : ${ratio?'%':'명'})`;
   $('#comparison-foot').textContent=ratio?'분모: 각 지역의 전체 주민':population?'창원 주민등록 인구, 2026.09':'격자별 공간배분 인구 합계, 전체 주민 기준';
  }
