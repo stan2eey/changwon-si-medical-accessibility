@@ -1,4 +1,4 @@
-import {sceneOrder} from './story-model.js';
+import {sceneOrder,facilityScenes} from './story-model.js';
 const base=import.meta.env.BASE_URL;
 const $=s=>document.querySelector(s);
 const fmt=(v,d=0)=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d});
@@ -28,14 +28,15 @@ async function init({mapLoader=()=>import('./maps.js')}={}){
  }
  function counter(label,value,unit){$('#scene-counter').hidden=false;$('#counter-label').textContent=label;$('#counter-value').textContent=value;$('#counter-unit').textContent=`(단위 : ${unit})`}
  function setScene(scene){
-  if(scene===active)return;active=scene;const fallbackScene=['cover','city-facilities','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(scene.startsWith('delivery-')?'분만기관 도달격자':'응급의학과 도달격자')+', 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
+  if(scene===active)return;active=scene;const facilityStep=facilityScenes.find(s=>s.scene===scene);const fallbackScene=facilityStep?scene:['cover','city-facilities','jinjeon','bukmyeon','elderly','ob-facilities','delivery-facilities','delivery-count','delivery-one'].includes(scene)?scene:'cover';$('#story-fallback img').src=`${base}maps/${fallbackScene}.svg`;$('#story-fallback img').alt=(facilityStep||scene==='city-facilities')?'창원 의료기관 유형별 분포':(scene.startsWith('delivery-')?'분만기관 도달격자':'응급의학과 도달격자')+', 실제 100m 분석결과';run.dataset.scene=scene;scenes.forEach(e=>e.classList.toggle('active',e.dataset.scene===scene));
   $('#story-progress-fill').style.width=`${100*(sceneOrder.indexOf(scene)+1)/sceneOrder.length}%`;
   $('#discovery-chart').hidden=!comparisonNames.has(scene);$('#supply-chart').hidden=!scene.startsWith('supply-');$('#scene-counter').hidden=true;
   $('#map-place').textContent='';$('#stage-label').textContent='차량시간 추정, 등록 전문의 보유기관 기준';$('#stage-legend').textContent='';
   if(comparisonNames.has(scene)){comparison(scene==='question'?'count':scene);$('#map-place').textContent='진전면 / 북면'}
   if(scene.startsWith('supply-')){supply(scene);$('#stage-label').textContent='공급률 비교, 2026.09';$('#map-place').textContent='도시 전체의 공급'}
   if(scene==='cover')$('#stage-label').textContent='';
-  if(scene==='city-facilities'){$('#stage-label').textContent='8개 진료과와 분만 분석의 창원 소재 공급기관';$('#stage-legend').textContent='● 등록 공급이 확인된 기관';$('#map-place').textContent='창원 의료기관 분포'}
+  if(facilityStep){$('#stage-label').textContent='2026년 10월 수집한 의료기관 등록자료';$('#stage-legend').textContent='● '+facilityStep.label;$('#map-place').textContent=facilityStep.label+' 분포'}
+  if(scene==='city-facilities'){$('#stage-label').textContent='창원 소재 의료기관, 2026년 10월 등록자료';$('#stage-legend').textContent='● 창원 소재 의료기관';$('#map-place').textContent='창원 의료기관 분포'}
   if(scene==='jinjeon'||scene==='bukmyeon'){
    const i=scene==='jinjeon'?0:1;$('#map-place').textContent=regions[i].area;$('#stage-legend').textContent='■ 주황: 30분 초과, 녹색: 30분 이내, 회색: 미산출, 보라: 배편';
   }

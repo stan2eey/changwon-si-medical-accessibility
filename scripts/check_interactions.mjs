@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {renderGridSVG} from '../src/scripts/grid-svg.js';
 import {waitForGridData} from '../src/scripts/grid-ready.js';
-import {sceneOrder,storyFeatures} from '../src/scripts/story-model.js';
+import {sceneOrder,storyFeatures,facilityScenes} from '../src/scripts/story-model.js';
 const base='/changwon-si-medical-accessibility/';
 const load=f=>JSON.parse(fs.readFileSync(`public/data/${f}`,'utf8'));
 const tick=()=>new Promise(r=>setTimeout(r,20));
@@ -21,7 +21,7 @@ let scrollPosition=0,mobile=false;const mapScenes=[];
 dom.window.matchMedia=()=>({matches:mobile});globalThis.requestAnimationFrame=cb=>{cb();return 1};
 const storyNodes=[...document.querySelectorAll('.scene')];
 storyNodes.forEach((node,i)=>{node.querySelector('.scene-copy').getBoundingClientRect=()=>({top:i*1000+300-scrollPosition})});
-const story=fs.readFileSync('src/scripts/story.js','utf8').replace(/^import .*?;\r?\n/,`const sceneOrder=${JSON.stringify(sceneOrder)};\n`).replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init({mapLoader:mockLoader}).catch(');
+const story=fs.readFileSync('src/scripts/story.js','utf8').replace(/^import .*?;\r?\n/,`const sceneOrder=${JSON.stringify(sceneOrder)},facilityScenes=${JSON.stringify(facilityScenes)};\n`).replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init({mapLoader:mockLoader}).catch(');
 await new Function('mockLoader',story)(async()=>({createStoryMap:async()=>({setScene:s=>mapScenes.push(s),destroy(){}})}));await tick();
 const $=s=>document.querySelector(s);
 const bar=$('#compare-bar-0'),dot=$('#supply-dot-0');
@@ -30,7 +30,10 @@ assert.equal($('.story-run').dataset.scene,'cover');assert($('#discovery-chart')
 assert.deepEqual(storyNodes.map(n=>n.dataset.scene),sceneOrder);
 assert(sceneOrder.indexOf('supply-all')<sceneOrder.indexOf('jinjeon'));
 assert(sceneOrder.indexOf('count')<sceneOrder.indexOf('rate'));
-go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 공급기관/);
+go('city-facilities');assert.match($('#stage-label').textContent,/창원 소재 의료기관/);
+const localFacilities=load('facilities.json').filter(f=>f.cw);
+assert.equal(facilityScenes.reduce((sum,step)=>sum+localFacilities.filter(f=>step.kinds.includes(f.kind)).length,0),localFacilities.length);
+for(const step of facilityScenes){go(step.scene);assert.equal($('#stage-legend').textContent,'● '+step.label);const count=localFacilities.filter(f=>step.kinds.includes(f.kind)).length;assert.equal(document.querySelector(`article[data-scene="${step.scene}"] h2 em`).textContent,`${count.toLocaleString('ko-KR')}곳`)}
 go('jinjeon');assert($('#discovery-chart').hidden);assert.equal($('.scene[data-scene="population"]'),null);
 go('rate');assert.equal($('#compare-value-0').textContent,'71.9%');assert.equal($('#compare-value-1').textContent,'6.2%');assert(!$('#discovery-chart').textContent.includes('2,730'));
 
