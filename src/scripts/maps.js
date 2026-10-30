@@ -8,13 +8,18 @@ export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const cache=new Map();
 export function data(file){if(!cache.has(file))cache.set(file,fetch(`${base}data/${file}`).then(r=>{if(!r.ok)throw new Error(`${file}: HTTP ${r.status}`);return r.json()}).catch(e=>{cache.delete(file);throw e}));return cache.get(file)}
 export function createMap(container,{center=[128.56,35.18],zoom=10,interactive=true,onError=()=>{}}={}){
- const map=new maplibregl.Map({container,center,zoom,minZoom:7,maxZoom:19,interactive,attributionControl:{compact:true},style:{version:8,sources:{street:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,maxzoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'},satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:18,attribution:'Tiles © Esri — Esri, Maxar, Earthstar Geographics, GIS User Community'}},layers:[{id:'background',type:'background',paint:{'background-color':'#e7ebe2'}},{id:'street',type:'raster',source:'street'},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'}}]}});
+ const key=import.meta.env.PUBLIC_VWORLD_API_KEY;
+ if(!key)throw new Error('VWorld web map key is not configured');
+ const tile=(layer,extension='png')=>`https://api.vworld.kr/req/wmts/1.0.0/${encodeURIComponent(key)}/${layer}/{z}/{y}/{x}.${extension}`;
+ const attribution='<a href="https://www.vworld.kr/" target="_blank" rel="noopener">공간정보 오픈플랫폼(브이월드)</a>';
+ const raster=(layer,extension)=>({type:'raster',tiles:[tile(layer,extension)],tileSize:256,maxzoom:19,attribution});
+ const map=new maplibregl.Map({container,center,zoom,minZoom:7,maxZoom:19,interactive,attributionControl:{compact:true},style:{version:8,sources:{street:raster('Base'),satellite:raster('Satellite','jpeg'),hybrid:raster('Hybrid')},layers:[{id:'background',type:'background',paint:{'background-color':'#e7ebe2'}},{id:'street',type:'raster',source:'street'},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'}},{id:'hybrid',type:'raster',source:'hybrid',layout:{visibility:'none'}}]}});
  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');map.addControl(new maplibregl.ScaleControl({unit:'metric'}));
  map.on('error',e=>onError(e.error?.message||'지도 자료 로딩 오류'));
  return map;
 }
 export const ready=map=>new Promise((resolve,reject)=>{if(map.isStyleLoaded())return resolve();const timer=setTimeout(()=>reject(Error('Map style timeout')),10000);map.once('style.load',()=>{clearTimeout(timer);resolve()})});
-export function setBase(map,type){for(const k of ['street','satellite'])map.setLayoutProperty(k,'visibility',k===type?'visible':'none')}
+export function setBase(map,type){for(const k of ['street','satellite','hybrid'])map.setLayoutProperty(k,'visibility',(k===type||k==='hybrid'&&type==='satellite')?'visible':'none')}
 export async function boundaries(map){const b=await data('boundaries.json');map.addSource('boundaries',{type:'geojson',data:b.boundaries});map.addLayer({id:'boundary',type:'line',source:'boundaries',paint:{'line-color':'#68776d','line-width':.6,'line-opacity':.7}});map.addSource('gu',{type:'geojson',data:b.gu});map.addLayer({id:'gu',type:'line',source:'gu',paint:{'line-color':'#263e34','line-width':1.6}})}
 export function boundsFor(g,name){const points=g.rings.filter((r,i)=>!name||g.names[i]===name).flat();if(!points.length)return null;return [[Math.min(...points.map(p=>p[1])),Math.min(...points.map(p=>p[0]))],[Math.max(...points.map(p=>p[1])),Math.max(...points.map(p=>p[0]))]]}
 export function moveTo(map,bounds){if(bounds)map.fitBounds(bounds,{padding:35,maxZoom:15,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:650})}

@@ -21,6 +21,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          PUBLIC_VWORLD_API_KEY: ${{ secrets.PUBLIC_VWORLD_API_KEY }}
       - run: npm test
       - run: python scripts/check_site.py
       - uses: actions/configure-pages@v5
