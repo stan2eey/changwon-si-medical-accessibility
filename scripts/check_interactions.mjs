@@ -59,7 +59,7 @@ const source=fs.readFileSync('src/scripts/explore.js','utf8').replace(/^import .
 const runExplore=new Function('mocks','renderGridSVG','const {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl,waitForGridData}=mocks;'+source);
 mocks.waitForGridData=map=>waitForGridData(map,50);
 await runExplore(mocks,renderGridSVG);
-assert.match($('#region-card').textContent,/의창구 북면/);assert.match($('#region-card').textContent,/6.2%/);assert.equal($('#comparison-rows').children.length,2);assert($('#map svg polygon'));assert.match($('#status').textContent,/격자 벡터지도/);
+assert.match($('#region-card').textContent,/의창구 북면/);assert.match($('#region-card').textContent,/6.2%/);assert.equal($('#comparison-rows').children.length,1);assert.equal($('#compare'),null);assert.equal($('#grid-search'),null);assert.equal($('#find-grid'),null);assert(!new URL(location.href).searchParams.has('compare'));assert($('#map svg polygon'));assert.match($('#status').textContent,/격자 벡터지도/);
 $('#service').value='delivery';$('#district').value='마산합포구 진동면';$('#service').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#definition').textContent,/기대출생아/);assert.match($('#region-card').textContent,/명\/년/);
 $('#gu').value='진해구';$('#gu').dispatchEvent(new dom.window.Event('change'));assert($('#district').value.startsWith('진해구 '));assert.match($('#region-card').textContent,/진해구/);
 $('#cut').value='60';$('#cut').dispatchEvent(new dom.window.Event('change'));await tick();assert.match($('#definition').textContent,/60분/);assert.equal(new URL(location.href).searchParams.get('service'),'delivery');assert.equal(new URL(location.href).searchParams.get('cut'),'60');

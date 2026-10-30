@@ -6,7 +6,7 @@ let overview,rows,geometry,facilities,map,values,selected=[],sea,requestId=0,map
 const service=()=>$('#service').value,cut=()=>$('#cut').value,metric=()=>$('#metric').value;
 const info=()=>overview.services[service()];
 const numeric=v=>v!=null&&Number.isFinite(Number(v));
-function currentRows(){return [$('#district').value,$('#compare').value].filter((x,i,a)=>x&&a.indexOf(x)===i).map(n=>rows.find(r=>r.area===n&&r.service===service()&&r.minutes===Number(cut()))).filter(Boolean)}
+function currentRows(){return [$('#district').value].filter((x,i,a)=>x&&a.indexOf(x)===i).map(n=>rows.find(r=>r.area===n&&r.service===service()&&r.minutes===Number(cut()))).filter(Boolean)}
 function regionSummary(){
  selected=currentRows();const r=selected[0];if(!r)return;
  const birth=service()==='delivery',unit=birth?'명/년':'명',ratio=r.target_population?100*r.over_population/r.target_population:null;
@@ -46,15 +46,15 @@ function renderMap(){
  $('#status').textContent=`${fmt(geometry.ids.length,0)}개 격자, ${info().label}, ${cut()}분 결과`;
 }
 async function update(){const id=++requestId;$('#grid-selection').hidden=true;values=null;regionSummary();$('#grid-detail').innerHTML='<p>선택 조건의 격자 결과를 불러오는 중입니다.</p>';$('#map').setAttribute('aria-busy','true');if(mapReady){map.getSource('grids').setData({type:'FeatureCollection',features:[]});map.getSource('facilities').setData({type:'FeatureCollection',features:[]})}$('#status').textContent='선택 조건의 결과를 불러오는 중…';try{const v=await data(`${service()}-${cut()}.json`);if(id!==requestId)return;values=v;renderMap();regionSummary();if(gridIndex>=0)selectGrid(gridIndex);else clearGrid();$('#map').removeAttribute('aria-busy');syncURL()}catch(e){if(id!==requestId)return;$('#status').textContent='결과를 불러오지 못했습니다. 다른 조건을 선택하거나 새로고침해 주세요.'}}
-function syncURL(){const p=new URLSearchParams({service:service(),cut:cut(),metric:metric(),district:$('#district').value});if($('#compare').value)p.set('compare',$('#compare').value);p.set('base',$('#basemap').value);if(gridIndex>=0)p.set('grid_id',geometry.ids[gridIndex]);if(params.get('embed')==='1')p.set('embed','1');if(mapReady){const c=map.getCenter();p.set('lat',c.lat.toFixed(5));p.set('lon',c.lng.toFixed(5));p.set('zoom',map.getZoom().toFixed(2))}history.replaceState(null,'',`${location.pathname}?${p}`)}
+function syncURL(){const p=new URLSearchParams({service:service(),cut:cut(),metric:metric(),district:$('#district').value});p.set('base',$('#basemap').value);if(gridIndex>=0)p.set('grid_id',geometry.ids[gridIndex]);if(params.get('embed')==='1')p.set('embed','1');if(mapReady){const c=map.getCenter();p.set('lat',c.lat.toFixed(5));p.set('lon',c.lng.toFixed(5));p.set('zoom',map.getZoom().toFixed(2))}history.replaceState(null,'',`${location.pathname}?${p}`)}
 async function init(){
  if(params.get('embed')==='1')document.body.classList.add('embed-mode');
  $('#close-grid-selection').onclick=()=>{$('#grid-selection').hidden=true};
  [overview,rows]=await Promise.all([data('overview.json'),data('districts.json')]);
- for(const [key,id]of [['service','service'],['cut','cut'],['metric','metric'],['district','district'],['compare','compare'],['base','basemap']]){const value=params.get(key);if(value!=null&&[...$( '#'+id).options].some(o=>o.value===value))$('#'+id).value=value}
+ for(const [key,id]of [['service','service'],['cut','cut'],['metric','metric'],['district','district'],['base','basemap']]){const value=params.get(key);if(value!=null&&[...$( '#'+id).options].some(o=>o.value===value))$('#'+id).value=value}
  regionSummary();
  $('#gu').onchange=()=>{const gu=$('#gu').value;[...$('#district').options].forEach(o=>o.hidden=!!gu&&!o.value.startsWith(gu+' '));if(gu&&!$('#district').value.startsWith(gu+' '))$('#district').value=[...$('#district').options].find(o=>!o.hidden).value;regionSummary();clearGrid();focusRegion();syncURL()};
- $('#district').onchange=()=>{regionSummary();clearGrid();focusRegion();syncURL()};$('#compare').onchange=()=>{regionSummary();syncURL()};
+ $('#district').onchange=()=>{regionSummary();clearGrid();focusRegion();syncURL()};
  for(const id of ['service','cut','metric'])$('#'+id).onchange=update;
  $('#basemap').onchange=()=>{if(mapReady)setBase(map,$('#basemap').value);syncURL()};$('#opacity').oninput=()=>{if(mapReady)map.setPaintProperty('grid-fill','fill-opacity',Number($('#opacity').value));else $('#map svg')?.style.setProperty('opacity',$('#opacity').value)};$('#show-facilities').onchange=()=>{if(mapReady)map.setLayoutProperty('facilities','visibility',$('#show-facilities').checked?'visible':'none');else drawSVG()};
  $('#share').onclick=async()=>{syncURL();try{const share=new URL(location.href);share.searchParams.delete('embed');await navigator.clipboard.writeText(share.href);$('#status').textContent='선택 격자, 지역, 과목, 조건의 링크를 복사했습니다.'}catch(e){$('#status').textContent='주소창의 링크를 복사하면 선택한 조건을 공유할 수 있습니다.'}};
@@ -64,7 +64,6 @@ async function init(){
  $('#zoom-in').onclick=()=>mapReady?map.zoomIn():svgMap?.zoom(.5);
  $('#zoom-out').onclick=()=>mapReady?map.zoomOut():svgMap?.zoom(2);
  $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('.map-wrap').requestFullscreen()}catch{const u=new URL(location.href);u.searchParams.delete('embed');window.open(u.href,'_blank','noopener')}};
- $('#find-grid').onclick=()=>{const i=geometry?.ids.indexOf($('#grid-search').value.trim())??-1;if(i<0){$('#grid-feedback').textContent='일치하는 격자번호가 없습니다.';return}selectGrid(i,true);$('#grid-feedback').textContent=`${geometry.names[i]}, ${geometry.ids[i]}`};
  [geometry,facilities]=await Promise.all([data('geometry.json'),data('facilities.json')]);sea=new Set(geometry.sea);
  gridIndex=geometry.ids.indexOf(params.get('grid_id'));if(gridIndex>=0)$('#district').value=geometry.names[gridIndex];
  await update();
