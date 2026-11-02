@@ -29,5 +29,9 @@
 .population-note span{display:block;white-space:nowrap}
 
 .copy-line{display:block}.keep-phrase{white-space:nowrap}.workforce-copy{word-break:keep-all;text-wrap:pretty}.scene .workforce-heading{font-size:clamp(25px,2.35vw,36px);line-height:1.45}@media(max-width:850px){.scene .workforce-heading{font-size:clamp(23px,6vw,32px)}}
+.scene[data-scene="jinjeon"] h2 .copy-line,.scene[data-scene="elderly"] h2 .copy-line,.scene[data-scene="count"] h2 .copy-line,.scene[data-scene="delivery-one"] p .copy-line{white-space:nowrap}
+@media(min-width:851px){.scene[data-scene="specialty-thoracic"] .scene-copy{max-width:450px}.scene[data-scene="jinjeon"] .scene-copy{max-width:440px}.scene[data-scene="elderly"] .scene-copy,.scene[data-scene="count"] .scene-copy{width:52vw;max-width:720px}.scene[data-scene="delivery-one"] .scene-copy{width:max(35%,470px);max-width:490px}}
+.masan-intro h3{margin:20px 0 0;line-height:1.5}.scenario-people{margin:26px 0 24px}
+@media(max-width:850px){.scene[data-scene="elderly"] h2{font-size:clamp(16px,5.1vw,32px)}.scene[data-scene="delivery-one"] p{font-size:clamp(12px,3.85vw,17px)}}
 
 .comparison-facts>span{display:block;margin-bottom:8px}.comparison-facts small{font-size:15px;margin-left:5px;white-space:nowrap}.discovery-label strong small{display:block;font-size:15px;font-weight:500;letter-spacing:0;line-height:1.7}.story-run[data-scene=count] .discovery-label strong{font-size:clamp(28px,3vw,42px)}

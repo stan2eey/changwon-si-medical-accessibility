@@ -27,10 +27,13 @@ function clearGrid(){gridIndex=-1;$('#grid-selection').hidden=true;$('#grid-deta
 function selectGrid(i,focus=false){
  if(!values||!geometry||i<0)return;const previousArea=$('#district').value;gridIndex=Number(i);
  $('#gu').value=geometry.names[i].split(' ')[0];[...$('#district').options].forEach(o=>o.hidden=!o.value.startsWith($('#gu').value+' '));$('#district').value=geometry.names[i];regionSummary();
- const r=values,t=r.minutes[i];
+ const r=values,t=r.minutes[i],ferry=sea.has(i)&&metric()==='score',missing=ferry?'배편 이용으로 인한 미산출':'미산출';
+ const scoreText=ferry?missing:fmt(r.score[i],4);
+ const countText=ferry?missing:fmt(r.count[i],0)+'곳';
+ const placeText=ferry?missing:`창원 ${fmt(r.count_cw[i],0)} / 시외 ${fmt(r.count_outside[i],0)}곳`;
  $('#grid-selection').hidden=false;
- $('#grid-selection-content').innerHTML=`<h2>${esc(geometry.names[i])}</h2><p>${esc(info().label)}, ${cut()}분</p><span>접근성 점수</span><strong class="grid-score">${fmt(r.score[i],4)}</strong><p class="grid-number">격자번호 <b>${esc(geometry.ids[i])}</b></p><p>가장 가까운 기관 ${numeric(t)?fmt(t,1)+'분':'미산출'}<br>${cut()}분 내 기관 ${fmt(r.count[i],0)}곳</p>`;
- $('#grid-detail').innerHTML=`<h2>${esc(geometry.names[i])}, 선택한 100m 격자</h2><p>${esc(info().label)}, ${cut()}분 권역</p><dl><dt>접근성 점수</dt><dd>${fmt(r.score[i],4)}</dd><dt>격자번호</dt><dd>${esc(geometry.ids[i])}</dd><dt>가장 가까운 기관까지</dt><dd>${numeric(t)?fmt(t,1)+'분, 차량 추정':'미산출'}</dd><dt>${cut()}분 안의 기관</dt><dd>${fmt(r.count[i],0)}곳</dd><dt>기관 소재지</dt><dd>창원 ${fmt(r.count_cw[i],0)} / 시외 ${fmt(r.count_outside[i],0)}곳</dd><dt>두 번째 기관까지</dt><dd>${r.second[i]==null?'60분 내 미확인':fmt(r.second[i],1)+'분'}</dd></dl><p class="small">(단위 : ${esc(info().unit)})</p><a href="${import.meta.env.BASE_URL}methods/#formula" target="_top">산출조건, 단위 확인</a>`;
+ $('#grid-selection-content').innerHTML=`<h2>${esc(geometry.names[i])}</h2><p>${esc(info().label)}, ${cut()}분</p><span>접근성 점수</span><strong class="grid-score">${scoreText}</strong><p class="grid-number">격자번호 <b>${esc(geometry.ids[i])}</b></p><p>가장 가까운 기관 ${numeric(t)?fmt(t,1)+'분':missing}<br>${cut()}분 내 기관 ${countText}</p>`;
+ $('#grid-detail').innerHTML=`<h2>${esc(geometry.names[i])}, 선택한 100m 격자</h2><p>${esc(info().label)}, ${cut()}분 권역</p><dl><dt>접근성 점수</dt><dd>${scoreText}</dd><dt>격자번호</dt><dd>${esc(geometry.ids[i])}</dd><dt>가장 가까운 기관까지</dt><dd>${numeric(t)?fmt(t,1)+'분, 차량 추정':missing}</dd><dt>${cut()}분 안의 기관</dt><dd>${countText}</dd><dt>기관 소재지</dt><dd>${placeText}</dd><dt>두 번째 기관까지</dt><dd>${r.second[i]==null?'60분 내 미확인':fmt(r.second[i],1)+'분'}</dd></dl><p class="small">(단위 : ${esc(info().unit)})</p><a href="${import.meta.env.BASE_URL}methods/#formula" target="_top">산출조건, 단위 확인</a>`;
  if(mapReady){map.setFilter('grid-selected',['==',['get','index'],i]);if(focus){const ring=geometry.rings[i];map.jumpTo({center:[ring[0][1],ring[0][0]],zoom:16})}}else{if(!svgMap||previousArea!==geometry.names[i])drawSVG();if(focus)svgMap?.focus(i)}
  svgMap?.select(i);syncURL();
 }
@@ -56,6 +59,11 @@ async function init(){
  $('#gu').onchange=()=>{const gu=$('#gu').value;[...$('#district').options].forEach(o=>o.hidden=!!gu&&!o.value.startsWith(gu+' '));if(gu&&!$('#district').value.startsWith(gu+' '))$('#district').value=[...$('#district').options].find(o=>!o.hidden).value;regionSummary();clearGrid();focusRegion();syncURL()};
  $('#district').onchange=()=>{regionSummary();clearGrid();focusRegion();syncURL()};
  for(const id of ['service','cut','metric'])$('#'+id).onchange=update;
+ const metricHelp=$('#metric-help');
+ $('#metric-info').onclick=()=>{metricHelp.showModal();$('#metric-info').setAttribute('aria-expanded','true')};
+ $('#close-metric-help').onclick=()=>metricHelp.close();
+ metricHelp.addEventListener('close',()=>$('#metric-info').setAttribute('aria-expanded','false'));
+ metricHelp.addEventListener('click',event=>{if(event.target===metricHelp)metricHelp.close()});
  $('#basemap').onchange=()=>{if(mapReady)setBase(map,$('#basemap').value);syncURL()};$('#opacity').oninput=()=>{if(mapReady)map.setPaintProperty('grid-fill','fill-opacity',Number($('#opacity').value));else $('#map svg')?.style.setProperty('opacity',$('#opacity').value)};$('#show-facilities').onchange=()=>{if(mapReady)map.setLayoutProperty('facilities','visibility',$('#show-facilities').checked?'visible':'none');else drawSVG()};
  $('#share').onclick=async()=>{syncURL();try{const share=new URL(location.href);share.searchParams.delete('embed');await navigator.clipboard.writeText(share.href);$('#status').textContent='선택 격자, 지역, 과목, 조건의 링크를 복사했습니다.'}catch(e){$('#status').textContent='주소창의 링크를 복사하면 선택한 조건을 공유할 수 있습니다.'}};
  $('#download-selection').onclick=()=>{const fields=['area','service','minutes','target_population','over_population','one_population','mean','unknown_population','sea_population'];const lines=[fields.join(','),...selected.map(r=>fields.map(k=>`"${String(r[k]??'').replaceAll('"','""')}"`).join(','))];const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`changwon-${service()}-${cut()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
