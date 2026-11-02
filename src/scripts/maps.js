@@ -16,6 +16,16 @@ export function createMap(container,{center=[128.56,35.18],zoom=10,interactive=t
  const raster=(layer,extension)=>({type:'raster',tiles:[tile(layer,extension)],tileSize:256,maxzoom:19,attribution});
  const map=new maplibregl.Map({container,center,zoom,minZoom:7,maxZoom:19,interactive,attributionControl:{compact:true},style:{version:8,sources:{street:raster('Base'),satellite:raster('Satellite','jpeg'),hybrid:raster('Hybrid')},layers:[{id:'background',type:'background',paint:{'background-color':'#e7ebe2'}},{id:'street',type:'raster',source:'street'},{id:'satellite',type:'raster',source:'satellite',layout:{visibility:'none'}},{id:'hybrid',type:'raster',source:'hybrid',layout:{visibility:'none'}}]}});
  map.addControl(new maplibregl.ScaleControl({unit:'metric'}));
+ const collapseAttribution=()=>{
+  const el=map.getContainer().querySelector('.maplibregl-ctrl-attrib');
+  if(!el||el.classList.contains('maplibregl-attrib-empty')||el.dataset.collapsed)return;
+  el.dataset.collapsed='1';
+  el.classList.add('maplibregl-compact');
+  el.classList.remove('maplibregl-compact-show');
+  el.removeAttribute('open');
+ };
+ map.on('load',collapseAttribution);
+ map.on('sourcedata',collapseAttribution);
  map.on('error',e=>onError(e.error?.message||'지도 자료 로딩 오류'));
  return map;
 }
