@@ -177,8 +177,8 @@ const policies = [
 <section class="policy-options" id="policy-options" aria-labelledby="policy-options-title">
  <h2 id="policy-options-title">의료접근성을 높이기 위한 <span class="keep-phrase">정책제안</span></h2>
  <div class="policy-grid">
-   {policies.map(policy=><article class:list={['policy-card',policy.id]}>
-    <h3>{policy.title}</h3>
+   {policies.map((policy,index)=><article class:list={['policy-card',policy.id]}>
+    <h3><span class="policy-no">{String(index+1).padStart(2,'0')}</span><span>{policy.title}</span></h3>
     <p class="proposal">{policy.description}</p>
     <div class="policy-visual">
     {policy.id==='birth'&&<div class="support-diagram" aria-label="분만기관 지원과 기관의 역할">
@@ -256,8 +256,9 @@ const policies = [
  .policy-options{--phase:#3f6754;--surface:#f3f6ef;position:relative;z-index:8;padding:76px 6vw;background:#fffdf8;color:#24483d;border-top:1px solid #b7c2b7}
  .policy-options h2{max-width:950px;font-size:clamp(27px,3.1vw,42px);line-height:1.4;letter-spacing:-.045em;word-break:keep-all;margin:0 0 36px}
  .policy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:22px;row-gap:0;align-items:stretch}
- .policy-card{display:grid;grid-row:span 5;grid-template-rows:subgrid;margin-bottom:22px;min-width:0;border:1px solid #b9c2ba;border-top:4px solid var(--phase);padding:28px;background:var(--surface)}
- .policy-card h3{font-size:clamp(22px,2vw,28px);line-height:1.5;letter-spacing:-.035em;word-break:keep-all;margin:0 0 18px;max-width:850px}
+ .policy-card{display:grid;grid-row:span 5;grid-template-rows:subgrid;margin-bottom:22px;min-width:0;border:1px solid #111;padding:28px;background:var(--surface)}
+ .policy-card h3{display:flex;align-items:baseline;gap:12px;font-size:clamp(22px,2vw,28px);line-height:1.5;letter-spacing:-.035em;word-break:keep-all;margin:0 0 18px;max-width:850px}
+ .policy-no{flex:none;font-variant-numeric:tabular-nums;letter-spacing:0}
  .policy-card p{font-size:16px;line-height:1.85;word-break:keep-all;overflow-wrap:break-word;margin:0}
  .proposal{max-width:900px}.policy-card h5{font-size:16px;line-height:1.6;margin:0 0 8px}
  .support-diagram{display:grid;grid-template-columns:1fr 1fr;border:1px solid #b9c2ba;margin:24px 0;background:#fffdf8}
