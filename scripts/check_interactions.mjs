@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {renderGridSVG} from '../src/scripts/grid-svg.js';
 import {waitForGridData} from '../src/scripts/grid-ready.js';
+import {TIME_BINS,numeric,timeColor,applyAccessReview,reviewedRows} from '../src/scripts/access-display.js';
 import {sceneOrder,storyFeatures,facilityScenes,specialtyScenes} from '../src/scripts/story-model.js';
 const base='/changwon-si-medical-accessibility/';
 const load=f=>JSON.parse(fs.readFileSync(`public/data/${f}`,'utf8'));
@@ -52,10 +53,11 @@ mobile=true;go('count');assert.equal($('#compare-value-1').textContent,'2,730명
 const features=storyFeatures(load('geometry.json'),load('code24-30.json'),load('delivery-30.json'),load('overview.json').elderly.find(r=>r.service==='code24').threshold).features;
 assert.equal(features.length,10099);const one=features.filter(f=>f.properties.area==='마산합포구 진동면'&&f.properties.deliveryKnown&&f.properties.count===1);assert(one.length>0);
 dom.window.close();
-dom=mount('dist/explore/index.html',`https://example.test${base}explore/?service=code24&cut=30&district=${encodeURIComponent('의창구 북면')}&compare=${encodeURIComponent('마산합포구 진전면')}`);
+dom=mount('dist/explore/index.html',`https://example.test${base}explore/?service=code24&cut=30&metric=threshold&district=${encodeURIComponent('의창구 북면')}&compare=${encodeURIComponent('마산합포구 진전면')}`);
 const mocks={data:async f=>load(f),createMap:()=>{throw Error('WebGL unavailable')},ready(){},boundaries(){},setBase(){},boundsFor(){},moveTo(){},facilitiesGeo(){},addFacilities(){},fmt:(v,d=1)=>v==null?'미산출':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:d}),esc:v=>String(v??'').replaceAll('<','&lt;'),maplibregl:{}};
 const source=fs.readFileSync('src/scripts/explore.js','utf8').replace(/^import .*?;\r?\n/gm,'').replace('import.meta.env.BASE_URL',JSON.stringify(base)).replace('init().catch(', 'return init().catch(');
-const runExplore=new Function('mocks','renderGridSVG','const {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl,waitForGridData}=mocks;'+source);
+const runExplore=new Function('mocks','renderGridSVG','const {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl,waitForGridData,TIME_BINS,numeric,timeColor,applyAccessReview,reviewedRows}=mocks;'+source);
+Object.assign(mocks,{TIME_BINS,numeric,timeColor,applyAccessReview,reviewedRows});
 mocks.waitForGridData=map=>waitForGridData(map,50);
 await runExplore(mocks,renderGridSVG);
 assert.match($('#region-card').textContent,/의창구 북면/);assert.match($('#region-card').textContent,/6.2%/);assert.equal($('#comparison-rows').children.length,1);assert.equal($('#compare'),null);assert.equal($('#grid-search'),null);assert.equal($('#find-grid'),null);assert(!new URL(location.href).searchParams.has('compare'));assert($('#map svg polygon'));assert.match($('#status').textContent,/격자 벡터지도/);
@@ -72,6 +74,15 @@ const restoreURL=location.href;dom.window.close();dom=mount('dist/explore/index.
 assert(!$('#grid-selection').hidden);assert($('#grid-selection-content').textContent.includes(gridID));assert.equal($('.grid-score').textContent,mocks.fmt(load('delivery-60.json').score[selectedIndex],4));
 $('#close-grid-selection').click();assert($('#grid-selection').hidden);$('#map polygon.selected').dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));assert(!$('#grid-selection').hidden);
 $('#district').value='마산합포구 진전면';$('#district').dispatchEvent(new dom.window.Event('change'));assert(!new URL(location.href).searchParams.has('grid_id'));assert(!$('#map polygon.selected'));
+$('#service').value='code10';$('#metric').value='time';$('#service').dispatchEvent(new dom.window.Event('change'));await tick();
+for(const i of load('access-review.json').review_indices){
+ const audited=$(`#map polygon[data-index="${i}"]`);assert(audited);audited.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true}));
+ assert.match($('#grid-detail').textContent,/접속경로 재검증/);assert.match($('#grid-selection-content').textContent,/접속경로 재검증/);assert(!$('#grid-detail').textContent.includes('153.2분'));
+}
+assert.match($('#region-card').textContent,/미산출 중 경로 재검증/);assert.match($('#city-time-summary').textContent,/45분 초과/);
+$('#metric').value='score';$('#cut').value='30';$('#metric').dispatchEvent(new dom.window.Event('change'));await tick();const scoreLegend=$('#legend').textContent;
+$('#cut').value='60';$('#cut').dispatchEvent(new dom.window.Event('change'));await tick();assert.equal($('#legend').textContent,scoreLegend,'30/60 score colors must share a scale');
+assert.match($('#metric-interpretation').textContent,/합격선은 아닙니다/);
 dom.window.close();
 // Exercise the map-success path and its click callback without claiming WebGL rendering.
 dom=mount('dist/explore/index.html',`https://example.test${base}explore/`);
@@ -79,6 +90,7 @@ const events={},filters={},sources={};let camera={lat:35.2,lng:128.5};
 const liveMap={addSource:(id,v)=>sources[id]=v,addLayer(){},getSource:id=>({setData:v=>sources[id].data=v}),setFilter:(id,f)=>filters[id]=f,setPaintProperty(){},setLayoutProperty(){},on:(name,...args)=>events[name+(typeof args[0]==='string'?':'+args[0]:'')]=args.at(-1),getCanvas:()=>({style:{},addEventListener(){}}),getCenter:()=>camera,getZoom:()=>15,resize(){},queryRenderedFeatures:()=>[],jumpTo:({center})=>camera={lng:center[0],lat:center[1]},remove(){}};
 Object.assign(liveMap,{off(){},isSourceLoaded:()=>true,querySourceFeatures:()=>sources.grids.data.features});
 await runExplore({...mocks,createMap:()=>liveMap,addFacilities:()=>sources.facilities={data:null}},renderGridSVG);assert($('#map').hidden);assert(!$('#webgl-map').hidden);assert.equal(sources.grids.data.features.length,10099);
+assert.equal($('#metric').value,'time','Default view should retain fixed travel-time bands');
 const bukIndex=load('geometry.json').names.indexOf('의창구 북면');events['click:grid-fill']({point:{},features:[{properties:{index:bukIndex}}]});assert.equal($('#district').value,'의창구 북면');assert.equal($('#gu').value,'의창구');assert.equal(filters['grid-selected'][2],bukIndex);assert($('#comparison-rows').textContent.includes('의창구 북면'));assert.equal(new URL(location.href).searchParams.get('grid_id'),load('geometry.json').ids[bukIndex]);
 assert(!$('#grid-selection').hidden);assert($('#grid-selection-content').textContent.includes(load('geometry.json').ids[bukIndex]));assert.equal($('.grid-score').textContent,mocks.fmt(load('code24-30.json').score[bukIndex],4));
 // A style can load while its worker never produces a grid. Keep the SVG usable.

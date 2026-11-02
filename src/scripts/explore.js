@@ -1,11 +1,19 @@
 import {renderGridSVG} from './grid-svg.js';
 import {waitForGridData} from './grid-ready.js';
+import {TIME_BINS,numeric,timeColor,applyAccessReview,reviewedRows} from './access-display.js';
 import {data,createMap,ready,boundaries,setBase,boundsFor,moveTo,facilitiesGeo,addFacilities,fmt,esc,maplibregl} from './maps.js';
 const $=s=>document.querySelector(s),params=new URLSearchParams(location.search);
-let overview,rows,geometry,facilities,map,values,selected=[],sea,requestId=0,mapReady=false,svgMap,gridIndex=-1;
+let overview,rows,geometry,facilities,map,values,accessReview,selected=[],sea,requestId=0,mapReady=false,svgMap,gridIndex=-1;
 const service=()=>$('#service').value,cut=()=>$('#cut').value,metric=()=>$('#metric').value;
 const info=()=>overview.services[service()];
-const numeric=v=>v!=null&&Number.isFinite(Number(v));
+const scoreScale=()=>accessReview.score_scale[service()]||1;
+function interpretation(){
+ const metricName=metric(),city=accessReview.city[service()][cut()],birth=service()==='delivery',unit=birth?'명/년':'명';
+ const notes={threshold:`${cut()}분 안에 등록 공급이 있는 기관 한 곳에 도달하는지를 보여줍니다. 5분과 55분은 60분 기준에서 같은 색입니다. 기준 이내라는 사실만으로 공급이 충분하거나 즉시 진료가 가능하다는 뜻은 아닙니다.`,count:`${cut()}분 안의 서로 다른 기관 수입니다. 전문의가 1명인 기관과 10명인 기관도 각각 1곳으로 셉니다.`,score:'공급량·주변 잠재수요·이동시간을 반영한 점수입니다. 같은 진료과의 30분·60분에 공통 색상 기준을 사용합니다. 100점 만점이나 의료공급 충분성의 합격선은 아닙니다.',time:'최소 이동시간을 15·30·45·60분의 고정 구간으로 표시합니다. 30분·60분 선택을 바꿔도 이 지도 색은 같습니다. 일부 격자는 보행·직선 접근 추정시간을 포함합니다.'};
+ $('#metric-interpretation').textContent=notes[metricName];
+ const pct=n=>fmt(100*n/city.total,3);
+ $('#city-time-summary').innerHTML=`<summary>창원 전체의 이동시간 분포</summary><p>${esc(info().demand_label)} ${fmt(city.total,1)}${unit} 기준. 60분은 비교가정이며 적정 진료시간 기준이 아닙니다.</p><dl>${TIME_BINS.map((b,i)=>`<dt>${b.label}</dt><dd>${fmt(city.time_population[i],1)}${unit} · ${pct(city.time_population[i])}%</dd>`).join('')}<dt>경로 재검증</dt><dd>${fmt(city.review,1)}${unit} · ${pct(city.review)}%</dd><dt>미산출 / 배편</dt><dd>${fmt(city.unknown,1)} / ${fmt(city.sea,1)}${unit}</dd></dl>`;
+}
 function currentRows(){return [$('#district').value].filter((x,i,a)=>x&&a.indexOf(x)===i).map(n=>rows.find(r=>r.area===n&&r.service===service()&&r.minutes===Number(cut()))).filter(Boolean)}
 function regionSummary(){
  selected=currentRows();const r=selected[0];if(!r)return;
@@ -17,43 +25,49 @@ function regionSummary(){
   const times=values&&geometry?geometry.names.flatMap((n,i)=>n===r.area&&numeric(values.minutes[i])&&!sea.has(i)?[values.minutes[i]]:[]).sort((a,b)=>a-b):[];
   detail=times.length?`<dt>산출격자 시간 범위</dt><dd>${fmt(times[0])}–${fmt(times.at(-1))}분</dd><dt>격자별 중앙값</dt><dd>${fmt((times[Math.floor((times.length-1)/2)]+times[Math.floor(times.length/2)])/2)}분</dd><dt>집계 기준</dt><dd>인구가중 없이 산출격자 ${fmt(times.length,0)}칸</dd>`:'<dt>격자별 차량 추정시간</dt><dd>지도의 한 칸을 선택하세요.</dd>';
  }else detail=`<dt>기준시간 초과지역 ${birth?'기대출생아':'거주인구'}</dt><dd><strong>${fmt(r.over_population,1)}${unit}, ${fmt(ratio,1)}%</strong></dd>`;
- $('#region-card').innerHTML=`<h3>${esc(r.area)}</h3><span class="small">${esc(info().label)}, ${cut()}분 기준</span><dl><dt>${birth?'전체 연간 기대출생아':'전체 '+esc(info().demand_label)}</dt><dd>${fmt(r.target_population,1)}${unit}</dd>${detail}<dt>경로 미산출 / 배편지역</dt><dd>${fmt(r.unknown_population,1)} / ${fmt(r.sea_population,1)}${unit}</dd></dl>`;
+ $('#region-card').innerHTML=`<h3>${esc(r.area)}</h3><span class="small">${esc(info().label)}, ${cut()}분 기준</span><dl><dt>${birth?'전체 연간 기대출생아':'전체 '+esc(info().demand_label)}</dt><dd>${fmt(r.target_population,1)}${unit}</dd>${detail}<dt>미산출·재검증 / 배편지역</dt><dd>${fmt(r.unknown_population,1)} / ${fmt(r.sea_population,1)}${unit}</dd>${r.review_population?`<dt>위 미산출 중 경로 재검증</dt><dd>${fmt(r.review_population,1)}${unit}</dd>`:''}</dl>`;
  $('#definition').textContent=`${info().label}, ${cut()}분, ${$('#metric').selectedOptions[0].textContent}, 분모: ${info().demand_label}. (단위 : ${info().unit.replaceAll('·',', ')}). ${birth?'시간, 기관 수의 격자 조건은 동일하며 요약 인구는 기대출생아로 가중합니다.':''}`;
  $('#comparison-rows').innerHTML=selected.map(r=>`<tr><th scope="row">${esc(r.area)}</th><td>${fmt(r.target_population,1)}${unit}</td><td>${fmt(r.over_population,1)}${unit}</td><td>${fmt(100*r.over_population/r.target_population,1)}%</td><td>${fmt(r.one_population,1)}${unit}</td><td>${fmt(r.mean,4)}</td><td>${fmt(r.unknown_population,1)} / ${fmt(r.sea_population,1)}${unit}</td></tr>`).join('');
+ interpretation();
 }
 function statusOf(i){return sea.has(i)?'sea':values.status[i]}
-function color(i,max){const st=statusOf(i);if(st==='sea')return '#806a9b';if(st==='unknown'||st==='no_car_path')return '#8d9791';const t=values.minutes[i],v=values.score[i],n=values.count[i];if(metric()==='threshold')return !numeric(t)?'#8d9791':t>Number(cut())?'#b14f34':'#91b4a2';if(metric()==='count')return !numeric(n)?'#8d9791':n===0?'#b14f34':n===1?'#d4ac4e':'#418274';if(metric()==='time'){if(!numeric(t))return '#8d9791';return t>60?'#873726':t>30?'#c67650':t>15?'#becabd':'#44816c'}if(!numeric(v))return '#8d9791';if(v===0)return '#d4ac4e';const x=Math.min(1,v/max),a=[224,233,215],b=[36,104,82];return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*x)).join(',')})`}
+function color(i,max){const st=statusOf(i);if(st==='sea')return '#806a9b';if(st==='route_review')return '#786a52';if(st==='unknown'||st==='no_car_path')return '#8d9791';const t=values.minutes[i],v=values.score[i],n=values.count[i];if(metric()==='threshold')return !numeric(t)?'#8d9791':t>Number(cut())?'#b14f34':'#91b4a2';if(metric()==='count')return !numeric(n)?'#8d9791':n===0?'#b14f34':n===1?'#d4ac4e':'#418274';if(metric()==='time')return timeColor(t);if(!numeric(v))return '#8d9791';if(v===0)return '#d4ac4e';const x=Math.min(1,v/max),a=[224,233,215],b=[36,104,82];return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*x)).join(',')})`}
 function clearGrid(){gridIndex=-1;$('#grid-selection').hidden=true;$('#grid-detail').innerHTML='<h2>선택한 100m 격자</h2><p>지도를 확대하고 한 칸을 누르면 시간, 기관 수, 점수를 확인할 수 있습니다.</p>';if(mapReady)map.setFilter('grid-selected',['==',['get','index'],-1])}
 function selectGrid(i,focus=false){
  if(!values||!geometry||i<0)return;const previousArea=$('#district').value;gridIndex=Number(i);
  $('#gu').value=geometry.names[i].split(' ')[0];[...$('#district').options].forEach(o=>o.hidden=!o.value.startsWith($('#gu').value+' '));$('#district').value=geometry.names[i];regionSummary();
- const r=values,t=r.minutes[i],ferry=sea.has(i)&&metric()==='score',missing=ferry?'배편 이용으로 인한 미산출':'미산출';
- const scoreText=ferry?missing:fmt(r.score[i],4);
- const countText=ferry?missing:fmt(r.count[i],0)+'곳';
- const placeText=ferry?missing:`창원 ${fmt(r.count_cw[i],0)} / 시외 ${fmt(r.count_outside[i],0)}곳`;
+ const r=values,t=r.minutes[i],ferry=sea.has(i),pending=statusOf(i)==='route_review',missing=pending?'접속경로 재검증':ferry?'배편 이용으로 인한 미산출':'미산출';
+ const scoreText=ferry||pending?missing:fmt(r.score[i],4);
+ const countText=ferry||pending?missing:fmt(r.count[i],0)+'곳';
+ const placeText=ferry||pending?missing:`창원 ${fmt(r.count_cw[i],0)} / 시외 ${fmt(r.count_outside[i],0)}곳`;
  $('#grid-selection').hidden=false;
  $('#grid-selection-content').innerHTML=`<h2>${esc(geometry.names[i])}</h2><p>${esc(info().label)}, ${cut()}분</p><span>접근성 점수</span><strong class="grid-score">${scoreText}</strong><p class="grid-number">격자번호 <b>${esc(geometry.ids[i])}</b></p><p>가장 가까운 기관 ${numeric(t)?fmt(t,1)+'분':missing}<br>${cut()}분 내 기관 ${countText}</p>`;
- $('#grid-detail').innerHTML=`<h2>${esc(geometry.names[i])}, 선택한 100m 격자</h2><p>${esc(info().label)}, ${cut()}분 권역</p><dl><dt>접근성 점수</dt><dd>${scoreText}</dd><dt>격자번호</dt><dd>${esc(geometry.ids[i])}</dd><dt>가장 가까운 기관까지</dt><dd>${numeric(t)?fmt(t,1)+'분, 차량 추정':missing}</dd><dt>${cut()}분 안의 기관</dt><dd>${countText}</dd><dt>기관 소재지</dt><dd>${placeText}</dd><dt>두 번째 기관까지</dt><dd>${r.second[i]==null?'60분 내 미확인':fmt(r.second[i],1)+'분'}</dd></dl><p class="small">(단위 : ${esc(info().unit)})</p><a href="${import.meta.env.BASE_URL}methods/#formula" target="_top">산출조건, 단위 확인</a>`;
+ $('#grid-detail').innerHTML=`<h2>${esc(geometry.names[i])}, 선택한 100m 격자</h2><p>${esc(info().label)}, ${cut()}분 권역</p><dl><dt>접근성 점수</dt><dd>${scoreText}</dd><dt>격자번호</dt><dd>${esc(geometry.ids[i])}</dd><dt>가장 가까운 기관까지</dt><dd>${numeric(t)?fmt(t,1)+'분, 차량 추정':missing}</dd><dt>${cut()}분 안의 기관</dt><dd>${countText}</dd><dt>기관 소재지</dt><dd>${placeText}</dd><dt>두 번째 기관까지</dt><dd>${pending||ferry?missing:r.second[i]==null?'60분 내 미확인':fmt(r.second[i],1)+'분'}</dd></dl><p class="small">(단위 : ${esc(info().unit)})</p><a href="${import.meta.env.BASE_URL}methods/#formula" target="_top">산출조건, 단위 확인</a>`;
+ const connector=accessReview.estimated_connectors.find(x=>x.index===i);
+ if(pending)$('#grid-detail').insertAdjacentHTML('beforeend','<p class="route-note">산지 우회 또는 직선 접속을 재검증하는 격자입니다. 기존 시간·기관 수·점수는 확정값으로 표시하지 않으며, 지역 요약에서도 미산출·재검증으로 분리했습니다. 실제 통행 가능한 도로 확인 후 재산정해야 합니다.</p>');
+ else if(connector)$('#grid-detail').insertAdjacentHTML('beforeend',`<p class="route-note">차량 도로까지 보행·직선 접근 추정 ${fmt(connector.access_minutes,1)}분이 포함됩니다. 실제 진입경로를 확인한 시간은 아닙니다.</p>`);
  if(mapReady){map.setFilter('grid-selected',['==',['get','index'],i]);if(focus){const ring=geometry.rings[i];map.jumpTo({center:[ring[0][1],ring[0][0]],zoom:16})}}else{if(!svgMap||previousArea!==geometry.names[i])drawSVG();if(focus)svgMap?.focus(i)}
  svgMap?.select(i);syncURL();
 }
-function drawSVG(all=false){if(!geometry||!values)return;const sorted=values.score.filter(numeric).sort((a,b)=>a-b),max=sorted[Math.floor(sorted.length*.95)]||1;const indices=geometry.names.flatMap((n,i)=>all||n===$('#district').value?[i]:[]);svgMap=renderGridSVG($('#map'),geometry,indices,i=>color(i,max),i=>selectGrid(i),$('#show-facilities').checked?facilities.filter(f=>Number(f.supply[service()])>0).map(f=>({lat:f.lat,lon:f.lon,label:f.name+', '+info().label+' '+f.supply[service()]+(service()==='delivery'?'병상':'명')})):[]);if(gridIndex>=0)svgMap.select(gridIndex)}
+function drawSVG(all=false){if(!geometry||!values)return;const max=scoreScale();const indices=geometry.names.flatMap((n,i)=>all||n===$('#district').value?[i]:[]);svgMap=renderGridSVG($('#map'),geometry,indices,i=>color(i,max),i=>selectGrid(i),$('#show-facilities').checked?facilities.filter(f=>Number(f.supply[service()])>0).map(f=>({lat:f.lat,lon:f.lon,label:f.name+', '+info().label+' '+f.supply[service()]+(service()==='delivery'?'병상':'명')})):[]);if(gridIndex>=0)svgMap.select(gridIndex)}
 function focusRegion(){if(!geometry)return;if(mapReady)moveTo(map,boundsFor(geometry,$('#district').value));else drawSVG()}
 function renderMap(){
  if(!values||!geometry)return;
- const sorted=values.score.filter(numeric).sort((a,b)=>a-b),max=sorted[Math.floor(sorted.length*.95)]||1;
+ const max=scoreScale();
  const features=geometry.rings.map((ring,i)=>{const coords=ring.map(p=>[p[1],p[0]]);if(JSON.stringify(coords[0])!==JSON.stringify(coords.at(-1)))coords.push(coords[0]);return {type:'Feature',id:i,geometry:{type:'Polygon',coordinates:[coords]},properties:{index:i,color:color(i,max)}}});
  if(mapReady){map.getSource('grids').setData({type:'FeatureCollection',features});map.getSource('facilities').setData(facilitiesGeo(facilities,service()))}else drawSVG();
- const items=metric()==='threshold'?[['#91b4a2',`${cut()}분 이내`],['#b14f34',`${cut()}분 초과`]]:metric()==='count'?[['#b14f34','0곳'],['#d4ac4e','1곳'],['#418274','2곳 이상']]:metric()==='time'?[['#44816c','15분 이내'],['#becabd','15~30분'],['#c67650','30~60분'],['#873726','60분 초과']]:[['#d4ac4e','0점'],['#e0e9d7','낮은 양수 점수'],['#246852',`${fmt(max,3)}점 이상 (조건별 95분위)`]];
+ const items=metric()==='threshold'?[['#91b4a2',`${cut()}분 이내`],['#b14f34',`${cut()}분 초과`]]:metric()==='count'?[['#b14f34','0곳'],['#d4ac4e','1곳'],['#418274','2곳 이상']]:metric()==='time'?TIME_BINS.map(b=>[b.color,b.label]):[['#d4ac4e','0점'],['#e0e9d7','낮은 양수 점수'],['#246852',`${fmt(max,3)}점 이상 (같은 과목 30·60분 공통 95분위)`]];
+ items.push(['#786a52','접속경로 재검증'],['#8d9791','미산출'],['#806a9b','배편지역']);
  $('#legend').innerHTML=items.map(([c,t])=>`<div class="legend-row"><span class="swatch" style="background:${c}"></span>${t}</div>`).join('');
  $('#status').textContent=`${fmt(geometry.ids.length,0)}개 격자, ${info().label}, ${cut()}분 결과`;
 }
-async function update(){const id=++requestId;$('#grid-selection').hidden=true;values=null;regionSummary();$('#grid-detail').innerHTML='<p>선택 조건의 격자 결과를 불러오는 중입니다.</p>';$('#map').setAttribute('aria-busy','true');if(mapReady){map.getSource('grids').setData({type:'FeatureCollection',features:[]});map.getSource('facilities').setData({type:'FeatureCollection',features:[]})}$('#status').textContent='선택 조건의 결과를 불러오는 중…';try{const v=await data(`${service()}-${cut()}.json`);if(id!==requestId)return;values=v;renderMap();regionSummary();if(gridIndex>=0)selectGrid(gridIndex);else clearGrid();$('#map').removeAttribute('aria-busy');syncURL()}catch(e){if(id!==requestId)return;$('#status').textContent='결과를 불러오지 못했습니다. 다른 조건을 선택하거나 새로고침해 주세요.'}}
+async function update(){const id=++requestId;$('#grid-selection').hidden=true;values=null;regionSummary();$('#grid-detail').innerHTML='<p>선택 조건의 격자 결과를 불러오는 중입니다.</p>';$('#map').setAttribute('aria-busy','true');if(mapReady){map.getSource('grids').setData({type:'FeatureCollection',features:[]});map.getSource('facilities').setData({type:'FeatureCollection',features:[]})}$('#status').textContent='선택 조건의 결과를 불러오는 중…';try{const v=await data(`${service()}-${cut()}.json`);if(id!==requestId)return;values=applyAccessReview(v,accessReview);renderMap();regionSummary();if(gridIndex>=0)selectGrid(gridIndex);else clearGrid();$('#map').removeAttribute('aria-busy');syncURL()}catch(e){if(id!==requestId)return;$('#status').textContent='결과를 불러오지 못했습니다. 다른 조건을 선택하거나 새로고침해 주세요.'}}
 function syncURL(){const p=new URLSearchParams({service:service(),cut:cut(),metric:metric(),district:$('#district').value});p.set('base',$('#basemap').value);if(gridIndex>=0)p.set('grid_id',geometry.ids[gridIndex]);if(params.get('embed')==='1')p.set('embed','1');if(mapReady){const c=map.getCenter();p.set('lat',c.lat.toFixed(5));p.set('lon',c.lng.toFixed(5));p.set('zoom',map.getZoom().toFixed(2))}history.replaceState(null,'',`${location.pathname}?${p}`)}
 async function init(){
  if(params.get('embed')==='1')document.body.classList.add('embed-mode');
  $('#close-grid-selection').onclick=()=>{$('#grid-selection').hidden=true};
- [overview,rows]=await Promise.all([data('overview.json'),data('districts.json')]);
+ [overview,rows,accessReview]=await Promise.all([data('overview.json'),data('districts.json'),data('access-review.json')]);
+ rows=reviewedRows(rows,accessReview);
  for(const [key,id]of [['service','service'],['cut','cut'],['metric','metric'],['district','district'],['base','basemap']]){const value=params.get(key);if(value!=null&&[...$( '#'+id).options].some(o=>o.value===value))$('#'+id).value=value}
  regionSummary();
  $('#gu').onchange=()=>{const gu=$('#gu').value;[...$('#district').options].forEach(o=>o.hidden=!!gu&&!o.value.startsWith(gu+' '));if(gu&&!$('#district').value.startsWith(gu+' '))$('#district').value=[...$('#district').options].find(o=>!o.hidden).value;regionSummary();clearGrid();focusRegion();syncURL()};
@@ -66,7 +80,7 @@ async function init(){
  metricHelp.addEventListener('click',event=>{if(event.target===metricHelp)metricHelp.close()});
  $('#basemap').onchange=()=>{if(mapReady)setBase(map,$('#basemap').value);syncURL()};$('#opacity').oninput=()=>{if(mapReady)map.setPaintProperty('grid-fill','fill-opacity',Number($('#opacity').value));else $('#map svg')?.style.setProperty('opacity',$('#opacity').value)};$('#show-facilities').onchange=()=>{if(mapReady)map.setLayoutProperty('facilities','visibility',$('#show-facilities').checked?'visible':'none');else drawSVG()};
  $('#share').onclick=async()=>{syncURL();try{const share=new URL(location.href);share.searchParams.delete('embed');await navigator.clipboard.writeText(share.href);$('#status').textContent='선택 격자, 지역, 과목, 조건의 링크를 복사했습니다.'}catch(e){$('#status').textContent='주소창의 링크를 복사하면 선택한 조건을 공유할 수 있습니다.'}};
- $('#download-selection').onclick=()=>{const fields=['area','service','minutes','target_population','over_population','one_population','mean','unknown_population','sea_population'];const lines=[fields.join(','),...selected.map(r=>fields.map(k=>`"${String(r[k]??'').replaceAll('"','""')}"`).join(','))];const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`changwon-${service()}-${cut()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+ $('#download-selection').onclick=()=>{const fields=['area','service','minutes','target_population','over_population','one_population','mean','unknown_population','sea_population','review_population'];const lines=[fields.join(','),...selected.map(r=>fields.map(k=>`"${String(r[k]??'').replaceAll('"','""')}"`).join(','))];const url=URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`changwon-${service()}-${cut()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
  $('#home').onclick=()=>{if(!geometry)return;if(mapReady)moveTo(map,boundsFor(geometry,''));else drawSVG(true)};
  $('#focus-region').onclick=focusRegion;document.addEventListener('fullscreenchange',()=>{if(mapReady)map.resize()});
  $('#zoom-in').onclick=()=>mapReady?map.zoomIn():svgMap?.zoom(.5);

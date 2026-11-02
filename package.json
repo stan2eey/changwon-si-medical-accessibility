@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "build": "node scripts/prepare_pdf.mjs && node scripts/validate.mjs && astro build",
+    "build": "node scripts/prepare_pdf.mjs && node scripts/validate.mjs && node scripts/check_access_review.mjs && astro build",
     "preview": "astro preview --host 127.0.0.1",
     "test": "node scripts/check_interactions.mjs"
   },
